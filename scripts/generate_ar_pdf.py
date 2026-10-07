@@ -54,39 +54,52 @@ url_style = ParagraphStyle(
 ENTRIES = [
     {
         "category": "Slam-Base AR Experience",
-        "qr": f"{ASSETS}/96cdbfce-196d-4b2d-a31e-1775317ca37f.png",
+        "qr": f"{ASSETS}/e7ce8c8a-b99d-4379-b4da-4931e282bb48.png",
         "url": "https://splattic-ar-test-3277b1.gitlab.io/",
         "title": "box_robo — World AR",
-        "desc_ja": "平面をスキャンして3Dモデルを空間に配置するSLAM（World Placement）体験です。",
-        "desc_en": "Scan a surface and tap to place 3D content in the real world.",
+        "desc_ja": (
+            "8th WallのWorld Tracking（SLAM）を使い、床や机などの平面を認識してから"
+            "タップで3Dキャラクター「box_robo」を現実空間に配置する体験です。"
+            "配置後は周囲を歩き回ってモデルをさまざまな角度から眺められます。"
+        ),
         "right_image": None,
     },
     {
         "category": "Slam-Base AR Experience",
-        "qr": f"{ASSETS}/5fbdcc39-6eac-493a-9509-8efb7c118f48.png",
+        "qr": f"{ASSETS}/04f2e550-c69a-433d-a134-a1c3bdda7286.png",
         "url": "https://splat-garden-de068c.gitlab.io/",
         "title": "splatGarden — World AR",
-        "desc_ja": "Gaussian Splatコンテンツを床面などに配置して見られるWorld AR体験です。",
-        "desc_en": "Place and explore splat garden content on detected surfaces.",
+        "desc_ja": (
+            "Gaussian Splatで表現された「ガーデン」コンテンツを、認識した平面の上に"
+            "配置して眺めるSLAMベースのWebARです。スマートフォンを動かすと、"
+            "高精細なスプラット表現の奥行きや光の変化を体感できます。"
+        ),
         "right_image": None,
     },
     {
         "category": "Slam-Base AR Experience",
-        "qr": f"{ASSETS}/379a1a3e-38bb-4ebd-afa0-55a713ed8cf7.png",
+        "qr": f"{ASSETS}/6b67bd51-5f3f-46df-b98e-b4d5c439e9fc.png",
         "url": "https://tactic-sizzle-reel-5611ed.gitlab.io/",
-        "title": "VideoScreen — World AR",
-        "desc_ja": "TACTICの映像を空間内のスクリーンとして配置するWorld AR体験です。",
-        "desc_en": "Place a video screen in your space using world tracking.",
+        "title": "VideoScreen — World AR（TACTIC）",
+        "desc_ja": (
+            "TACTICブランドのプロモーション映像を、空間内の仮想スクリーンとして"
+            "配置するWorld AR体験です。平面を検出したあと、好きな位置に"
+            "ビデオパネルを置き、周囲から映像を見ることができます。"
+        ),
         "right_image": None,
     },
     {
         "category": "Image-base AR Experience",
-        "qr": f"{ASSETS}/02bdf68a-744a-44ae-9a4b-ce24bbd4b17c.png",
+        "qr": f"{ASSETS}/9e256002-9dbe-493c-8cd0-317666b1072a.png",
         "url": "https://tacticbot-dance-b22377.gitlab.io/",
-        "title": "VideoScreen — Image AR",
-        "desc_ja": "右側のSplatticロゴを印刷し、カメラでマーカーを認識させるImage Target型ARです。",
-        "desc_en": "Print the Splattic logo marker, open the URL, then point the camera at the marker.",
-        "right_image": f"{ASSETS}/48611c2d-fc3d-4f18-9a17-f50215e251a4.png",
+        "title": "VideoScreen — Image AR（Tacticbot Dance）",
+        "desc_ja": (
+            "右側のSplatticロゴ（Image Target）を印刷または画面表示し、"
+            "QRコードから開いたページで「Start AR」のあとカメラをロゴに向ける"
+            "Image Tracking型の体験です。マーカー上にTacticbotのダンス映像が"
+            "重なって再生されます。"
+        ),
+        "right_image": f"{ASSETS}/203a5bff-1bf9-4799-976a-f2c3aed57b17.png",
     },
 ]
 
@@ -96,8 +109,7 @@ def build_right_column(entry):
         Paragraph(f"<b>{entry['category']}</b>", section_title),
         Paragraph(entry["title"], body),
         Paragraph(entry["desc_ja"], body),
-        Paragraph(entry["desc_en"], body),
-        Paragraph(f"URL: {entry['url']}", url_style),
+        Paragraph(f"<b>URL:</b> {entry['url']}", url_style),
     ]
     if entry["right_image"]:
         flow.extend(
