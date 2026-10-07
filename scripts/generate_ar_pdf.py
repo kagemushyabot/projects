@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from pathlib import Path
+
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib import colors
@@ -15,8 +17,9 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.lib.enums import TA_LEFT
 
-ASSETS = "/home/ubuntu/.cursor/projects/workspace/assets"
-OUT = "/workspace/output/AR_Experience_QR_Guide.pdf"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ASSETS = PROJECT_ROOT / "assets"
+OUT = PROJECT_ROOT / "output" / "AR_Experience_QR_Guide.pdf"
 
 pdfmetrics.registerFont(UnicodeCIDFont("HeiseiMin-W3"))
 
@@ -54,7 +57,7 @@ url_style = ParagraphStyle(
 ENTRIES = [
     {
         "category": "Slam-Base AR Experience",
-        "qr": f"{ASSETS}/e7ce8c8a-b99d-4379-b4da-4931e282bb48.png",
+        "qr": ASSETS / "e7ce8c8a-b99d-4379-b4da-4931e282bb48.png",
         "url": "https://splattic-ar-test-3277b1.gitlab.io/",
         "title": "box_robo — World AR",
         "desc_ja": (
@@ -66,7 +69,7 @@ ENTRIES = [
     },
     {
         "category": "Slam-Base AR Experience",
-        "qr": f"{ASSETS}/04f2e550-c69a-433d-a134-a1c3bdda7286.png",
+        "qr": ASSETS / "04f2e550-c69a-433d-a134-a1c3bdda7286.png",
         "url": "https://splat-garden-de068c.gitlab.io/",
         "title": "splatGarden — World AR",
         "desc_ja": (
@@ -78,7 +81,7 @@ ENTRIES = [
     },
     {
         "category": "Slam-Base AR Experience",
-        "qr": f"{ASSETS}/6b67bd51-5f3f-46df-b98e-b4d5c439e9fc.png",
+        "qr": ASSETS / "6b67bd51-5f3f-46df-b98e-b4d5c439e9fc.png",
         "url": "https://tactic-sizzle-reel-5611ed.gitlab.io/",
         "title": "VideoScreen — World AR（TACTIC）",
         "desc_ja": (
@@ -90,7 +93,7 @@ ENTRIES = [
     },
     {
         "category": "Image-base AR Experience",
-        "qr": f"{ASSETS}/9e256002-9dbe-493c-8cd0-317666b1072a.png",
+        "qr": ASSETS / "9e256002-9dbe-493c-8cd0-317666b1072a.png",
         "url": "https://tacticbot-dance-b22377.gitlab.io/",
         "title": "VideoScreen — Image AR（Tacticbot Dance）",
         "desc_ja": (
@@ -99,7 +102,7 @@ ENTRIES = [
             "Image Tracking型の体験です。マーカー上にTacticbotのダンス映像が"
             "重なって再生されます。"
         ),
-        "right_image": f"{ASSETS}/203a5bff-1bf9-4799-976a-f2c3aed57b17.png",
+        "right_image": ASSETS / "203a5bff-1bf9-4799-976a-f2c3aed57b17.png",
     },
 ]
 
@@ -116,15 +119,16 @@ def build_right_column(entry):
             [
                 Spacer(1, 4 * mm),
                 Paragraph("<b>Image Target（印刷用マーカー）</b>", body),
-                RLImage(entry["right_image"], width=58 * mm, height=18 * mm),
+                RLImage(str(entry["right_image"]), width=58 * mm, height=18 * mm),
             ]
         )
     return flow
 
 
 def main():
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     doc = SimpleDocTemplate(
-        OUT,
+        str(OUT),
         pagesize=A4,
         leftMargin=18 * mm,
         rightMargin=18 * mm,
@@ -142,7 +146,7 @@ def main():
     ]
 
     for entry in ENTRIES:
-        qr_img = RLImage(entry["qr"], width=42 * mm, height=42 * mm)
+        qr_img = RLImage(str(entry["qr"]), width=42 * mm, height=42 * mm)
         right_flow = build_right_column(entry)
         right_table = Table([[p] for p in right_flow], colWidths=[None])
         right_table.setStyle(
