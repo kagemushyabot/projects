@@ -73,21 +73,24 @@ if (await page.$('#water-is-life-hidden-dangers-vr-campaign')) {
     document.getElementById('water-is-life-hidden-dangers-vr-campaign')?.scrollIntoView({ block: 'start', behavior: 'instant' });
   });
   await new Promise((r) => setTimeout(r, 400));
+  await page.evaluate(() => {
+    document.getElementById('on-ice')?.scrollIntoView({ block: 'end', behavior: 'instant' });
+  });
+  await new Promise((r) => setTimeout(r, 350));
   const clip = await page.evaluate(() => {
     const water = document.getElementById('water-is-life-hidden-dangers-vr-campaign');
     const onIce = document.getElementById('on-ice');
-    const monterey = document.getElementById('mission-to-the-deep-exhibit');
-    const band = document.getElementById('google-spotlight-stories-group');
+    const onIceHero = onIce?.querySelector('.gallery-spotlight-film__hero');
     const start = (water?.getBoundingClientRect().top ?? 0) + window.scrollY;
-    const endEl = onIce ?? band;
-    const endBottom = (monterey?.getBoundingClientRect().bottom ??
-      (endEl ? endEl.getBoundingClientRect().bottom + 120 : start + 900)) + window.scrollY;
+    const endBottom =
+      (onIceHero?.getBoundingClientRect().bottom ?? onIce?.getBoundingClientRect().bottom ?? start + 900) +
+      window.scrollY;
     const pad = 12;
     return {
       x: 0,
       y: Math.max(0, start - pad),
       width: 1440,
-      height: Math.min(1800, Math.max(400, endBottom - start + pad * 2)),
+      height: Math.min(2400, Math.max(400, endBottom - start + pad * 2)),
     };
   });
   await page.screenshot({
