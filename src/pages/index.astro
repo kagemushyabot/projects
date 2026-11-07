@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/site';
 
 const works = [
   { num: '01', href: '/custom/', label: 'custom', hint: 'AR / VR / film' },
@@ -10,24 +11,41 @@ const works = [
 ---
 
 <BaseLayout title="Jun Nagaoka" current="home">
-  <section class="home-hero">
-    <h1 class="home-type">
-      <span class="line-jun">JUN</span>
-      <span class="line-nagaoka">NAGAOKA</span>
-    </h1>
-    <p class="home-role">Lead / Senior 3D Artist · 3D Generalist · Technical Artist</p>
-    <ul class="work-index">
-      {
-        works.map((w) => (
-          <li>
-            <a href={w.href}>
-              <span class="num">{w.num}</span>
-              <span class="label">{w.label}</span>
-              <span class="hint">{w.hint}</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </section>
+  {
+    siteConfig.launched ? (
+      <section class="home-hero">
+        <h1 class="home-type">
+          <span class="line-jun">JUN</span>
+          <span class="line-nagaoka">NAGAOKA</span>
+        </h1>
+        <p class="home-role">Lead / Senior 3D Artist · 3D Generalist · Technical Artist</p>
+        <ul class="work-index">
+          {
+            works.map((w) => (
+              <li>
+                <a href={w.href}>
+                  <span class="num">{w.num}</span>
+                  <span class="label">{w.label}</span>
+                  <span class="hint">{w.hint}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    ) : (
+      <section class="wip-hero" aria-labelledby="wip-heading">
+        <h1 id="wip-heading" class="home-type">
+          <span class="line-jun">JUN</span>
+          <span class="line-nagaoka">NAGAOKA</span>
+        </h1>
+        <p class="wip-status">
+          <span lang="ja">準備中</span>
+          <span class="wip-sep" aria-hidden="true">·</span>
+          <span>work in progress</span>
+        </p>
+        <p class="wip-note">Portfolio site is being updated. Full work index will appear here after launch.</p>
+      </section>
+    )
+  }
 </BaseLayout>

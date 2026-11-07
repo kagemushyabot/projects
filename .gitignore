@@ -1,5 +1,6 @@
 # build output
 dist/
+.wip-preview-stash-wp-import/
 # generated types
 .astro/
 

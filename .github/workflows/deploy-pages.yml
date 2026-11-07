@@ -17,11 +17,12 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Flip via repo variable PUBLIC_SITE_LAUNCH or Settings → Secrets and variables → Actions.
+      PUBLIC_SITE_LAUNCH: ${{ vars.PUBLIC_SITE_LAUNCH || 'false' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

@@ -1,4 +1,6 @@
 ---
+import { siteConfig } from '../config/site';
+
 interface Props {
   title: string;
   current?: 'home' | 'custom' | 'images' | 'animation' | 'resume';
@@ -7,13 +9,15 @@ interface Props {
 const { title, current } = Astro.props;
 const fullTitle = current === 'home' ? 'Jun Nagaoka' : `${title} · Jun Nagaoka`;
 
-const nav = [
-  { id: 'home' as const, href: '/', label: 'Home' },
-  { id: 'custom' as const, href: '/custom/', label: 'custom' },
-  { id: 'images' as const, href: '/images/', label: 'images' },
-  { id: 'animation' as const, href: '/animation/', label: 'animation' },
-  { id: 'resume' as const, href: '/resume/', label: 'resume' },
-];
+const nav = siteConfig.launched
+  ? [
+      { id: 'home' as const, href: '/', label: 'Home' },
+      { id: 'custom' as const, href: '/custom/', label: 'custom' },
+      { id: 'images' as const, href: '/images/', label: 'images' },
+      { id: 'animation' as const, href: '/animation/', label: 'animation' },
+      { id: 'resume' as const, href: '/resume/', label: 'resume' },
+    ]
+  : [];
 ---
 
 <!doctype html>
@@ -22,6 +26,7 @@ const nav = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Jun Nagaoka — Lead / Senior 3D Artist, AR/VR and real-time production." />
+    {!siteConfig.launched && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,20 +38,24 @@ const nav = [
   </head>
   <body>
     <div class="site-shell">
-      <header class="site-header">
-        <nav class="site-nav" aria-label="Primary">
-          {
-            nav.map((item, i) => (
-              <>
-                {i > 0 && <span class="sep" aria-hidden="true">|</span>}
-                <a href={item.href} aria-current={current === item.id ? 'page' : undefined}>
-                  {item.label}
-                </a>
-              </>
-            ))
-          }
-        </nav>
-      </header>
+      {
+        siteConfig.launched && (
+          <header class="site-header">
+            <nav class="site-nav" aria-label="Primary">
+              {
+                nav.map((item, i) => (
+                  <>
+                    {i > 0 && <span class="sep" aria-hidden="true">|</span>}
+                    <a href={item.href} aria-current={current === item.id ? 'page' : undefined}>
+                      {item.label}
+                    </a>
+                  </>
+                ))
+              }
+            </nav>
+          </header>
+        )
+      }
       <main>
         <slot />
       </main>

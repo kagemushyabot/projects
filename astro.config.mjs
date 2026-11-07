@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://kagemushya.github.io',
+  site: 'https://kagemushyabot.github.io',
   base: '/',
   output: 'static',
 });
