@@ -7,6 +7,7 @@ import {
 } from '../utils/portfolioGallery';
 import { assetUrl } from '../utils/paths';
 import PortfolioVideoModal from './PortfolioVideoModal.astro';
+import StillZoomBadge from './StillZoomBadge.astro';
 
 const { projects } = buildPortfolioGallery();
 
@@ -68,7 +69,15 @@ function eagerMedia(project: GalleryProject): boolean {
                 <header class="gallery-spotlight-group__masthead">
                   {
                     logo && (
-                      <figure class="gallery-spotlight-group__logo">
+                      <button
+                        type="button"
+                        class="work-intro-visual-zoom gallery-spotlight-group__logo"
+                        data-image-open
+                        data-image-src={assetUrl(logo.src)}
+                        data-image-title="Google Spotlight Stories"
+                        data-image-alt="Google Spotlight Stories"
+                        aria-label="View larger image: Google Spotlight Stories"
+                      >
                         <img
                           src={assetUrl(logo.src)}
                           alt="Google Spotlight Stories"
@@ -78,7 +87,8 @@ function eagerMedia(project: GalleryProject): boolean {
                           decoding="async"
                           fetchpriority="high"
                         />
-                      </figure>
+                        <StillZoomBadge />
+                      </button>
                     )
                   }
                   <div class="gallery-spotlight-group__masthead-copy">
@@ -118,14 +128,25 @@ function eagerMedia(project: GalleryProject): boolean {
 
                           {
                             hero && (
-                              <figure class="gallery-spotlight-film__hero" data-film-hero>
+                              <button
+                                type="button"
+                                class="gallery-still-open gallery-still-open--hero gallery-spotlight-film__hero"
+                                data-film-hero
+                                data-image-open
+                                data-image-src={assetUrl(hero.src)}
+                                data-image-title={meta.filmTitle}
+                                data-image-alt={hero.alt}
+                                data-image-caption={meta.directorLabel}
+                                aria-label={`View larger image: ${meta.filmTitle}`}
+                              >
                                 <img
                                   src={assetUrl(hero.src)}
                                   alt={hero.alt}
                                   loading="eager"
                                   decoding="async"
                                 />
-                              </figure>
+                                <StillZoomBadge />
+                              </button>
                             )
                           }
 
@@ -201,12 +222,19 @@ function eagerMedia(project: GalleryProject): boolean {
                 >
                   {
                     visibleImages.map((img) => (
-                      <figure
+                      <button
+                        type="button"
                         class:list={[
-                          'gallery-image',
+                          'gallery-still-open',
                           'gallery-image--still',
+                          stackedFeature && 'gallery-still-open--hero',
                           stackedFeature && 'gallery-feature-hero',
                         ]}
+                        data-image-open
+                        data-image-src={assetUrl(img.src)}
+                        data-image-title={project.title}
+                        data-image-alt={img.alt}
+                        aria-label={`View larger image: ${project.title}`}
                       >
                         <img
                           src={assetUrl(img.src)}
@@ -214,7 +242,8 @@ function eagerMedia(project: GalleryProject): boolean {
                           loading={eager ? 'eager' : 'lazy'}
                           decoding="async"
                         />
-                      </figure>
+                        <StillZoomBadge />
+                      </button>
                     ))
                   }
                   {

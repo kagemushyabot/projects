@@ -70,6 +70,19 @@ if (videoTile) {
   }
 }
 
+const pearlStill = await page.$('#pearl [data-film-hero][data-image-open]');
+if (pearlStill) {
+  await pearlStill.click();
+  await page.waitForFunction(
+    () => !document.querySelector('[data-image-modal]').hasAttribute('hidden'),
+    { timeout: 5000 },
+  );
+  await new Promise((r) => setTimeout(r, 400));
+  await page.screenshot({ path: `${outDir}/work-exp-image-lightbox.png` });
+  await page.click('[data-image-close]');
+  await new Promise((r) => setTimeout(r, 200));
+}
+
 const openVideo = await page.$('[data-video-open]');
 if (openVideo) {
   await openVideo.click();

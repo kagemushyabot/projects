@@ -1,5 +1,6 @@
 ---
 import { assetUrl } from '../utils/paths';
+import StillZoomBadge from './StillZoomBadge.astro';
 
 const tacticImage = assetUrl('/assets/work-intro/tactic-studio-featured.png');
 const splatticImage = assetUrl('/assets/work-intro/splattic-featured.png');
@@ -11,21 +12,27 @@ const splatticUrl = 'https://www.splattic.com/';
   <h2 id="work-intro-heading" class="sr-only">Studio highlights</h2>
 
   <article class="work-intro-block work-intro-block--tactic reveal">
-    <a
-      class="work-intro-visual work-intro-visual--featured"
-      href={tacticUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <img
-        src={tacticImage}
-        alt="Tactic Studio — AR and VR project showcase"
-        width="2117"
-        height="1298"
-        loading="eager"
-        decoding="async"
-      />
-    </a>
+    <div class="work-intro-visual work-intro-visual--featured">
+      <button
+        type="button"
+        class="work-intro-visual-zoom"
+        data-image-open
+        data-image-src={tacticImage}
+        data-image-title="Tactic Studio"
+        data-image-alt="Tactic Studio — AR and VR project showcase"
+        aria-label="View larger image: Tactic Studio"
+      >
+        <img
+          src={tacticImage}
+          alt="Tactic Studio — AR and VR project showcase"
+          width="2117"
+          height="1298"
+          loading="eager"
+          decoding="async"
+        />
+        <StillZoomBadge />
+      </button>
+    </div>
     <div class="work-intro-copy">
       <p class="work-intro-label">Studio</p>
       <h3 class="work-intro-title">
@@ -35,25 +42,37 @@ const splatticUrl = 'https://www.splattic.com/';
         At Tactic Studio, I contributed to nearly all of the studio&apos;s projects — branded AR and VR
         campaigns alongside the in-house team.
       </p>
+      <p class="work-intro-site">
+        <a href={tacticUrl} target="_blank" rel="noopener noreferrer">
+          tactic.studio
+          <span aria-hidden="true"> ↗</span>
+        </a>
+      </p>
     </div>
   </article>
 
   <article class="work-intro-block work-intro-block--splattic reveal" style="--reveal-delay: 80ms">
-    <a
-      class="work-intro-visual work-intro-visual--featured"
-      href={splatticUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <img
-        src={splatticImage}
-        alt="Splattic — AR/VR/XR workflow web app"
-        width="2106"
-        height="1301"
-        loading="eager"
-        decoding="async"
-      />
-    </a>
+    <div class="work-intro-visual work-intro-visual--featured">
+      <button
+        type="button"
+        class="work-intro-visual-zoom"
+        data-image-open
+        data-image-src={splatticImage}
+        data-image-title="Splattic"
+        data-image-alt="Splattic — AR/VR/XR workflow web app"
+        aria-label="View larger image: Splattic"
+      >
+        <img
+          src={splatticImage}
+          alt="Splattic — AR/VR/XR workflow web app"
+          width="2106"
+          height="1301"
+          loading="eager"
+          decoding="async"
+        />
+        <StillZoomBadge />
+      </button>
+    </div>
     <div class="work-intro-copy">
       <p class="work-intro-label">Current</p>
       <h3 class="work-intro-title">
