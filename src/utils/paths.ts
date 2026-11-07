@@ -2,10 +2,9 @@ export const WORK_EXPERIENCE_PATH = '/work-experience/';
 
 export type WorkExperienceSection = 'custom' | 'images' | 'animation';
 
-/** Unified portfolio page with optional in-page section hash. */
-export function workExperienceHref(section?: WorkExperienceSection): string {
-  const base = withBase(WORK_EXPERIENCE_PATH);
-  return section ? `${base}#${section}` : base;
+/** Unified portfolio page (`/work-experience/`). Legacy section args are ignored (no category anchors). */
+export function workExperienceHref(_section?: WorkExperienceSection): string {
+  return withBase(WORK_EXPERIENCE_PATH);
 }
 
 /** Prefix an app-root path with the configured Astro base (e.g. `/projects/`). */

@@ -1,0 +1,85 @@
+---
+import { buildPortfolioGallery } from '../utils/portfolioGallery';
+import { withBase } from '../utils/paths';
+import PortfolioVideoModal from './PortfolioVideoModal.astro';
+
+const { projects } = buildPortfolioGallery();
+
+function thumbSrc(youtubeId: string) {
+  return `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
+}
+---
+
+<div class="portfolio-gallery" id="work-main">
+  <ul class="gallery-grid" role="list">
+    {
+      projects.map((project, index) => (
+        <li
+          id={project.id}
+          class:list={['gallery-item', 'reveal', `gallery-item--${project.layout}`]}
+          style={`--reveal-delay: ${(index % 10) * 35}ms`}
+        >
+          <article class="gallery-card">
+            <header class="gallery-card-head">
+              <h2 class="gallery-card-title">{project.title}</h2>
+              {project.credit && <p class="gallery-card-credit">{project.credit}</p>}
+            </header>
+
+            {(project.videos.length > 0 || project.images.length > 0) && (
+              <div class="gallery-card-media" data-media-grid>
+                {
+                  project.videos.map((video) => (
+                    <button
+                      type="button"
+                      class="gallery-video-thumb"
+                      data-video-open
+                      data-youtube-id={video.youtubeId}
+                      data-video-title={project.title}
+                      aria-label={`Play video: ${project.title}`}
+                    >
+                      <img
+                        src={thumbSrc(video.youtubeId)}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        width="320"
+                        height="180"
+                      />
+                      <span class="gallery-video-play" aria-hidden="true">
+                        ▶
+                      </span>
+                    </button>
+                  ))
+                }
+                {
+                  project.images.map((img) => (
+                    <figure class="gallery-image">
+                      <img
+                        src={withBase(img.src)}
+                        alt={img.alt}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </figure>
+                  ))
+                }
+              </div>
+            )}
+
+            {
+              project.notes.length > 0 && (
+                <ul class="gallery-card-notes">
+                  {project.notes.map((note) => (
+                    <li>{note}</li>
+                  ))}
+                </ul>
+              )
+            }
+          </article>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<PortfolioVideoModal />

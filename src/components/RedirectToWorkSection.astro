@@ -1,13 +1,13 @@
 ---
-import { workExperienceHref, type WorkExperienceSection } from '../utils/paths';
+import { workExperienceHref } from '../utils/paths';
 
 interface Props {
-  section: WorkExperienceSection;
+  /** Legacy label for redirect page title only. */
   label: string;
 }
 
-const { section, label } = Astro.props;
-const url = workExperienceHref(section);
+const { label } = Astro.props;
+const url = workExperienceHref();
 ---
 
 <!doctype html>
@@ -24,7 +24,7 @@ const url = workExperienceHref(section);
   </head>
   <body>
     <p>
-      <a href={url}>Continue to work experience — {label}</a>
+      <a href={url}>Continue to work experience</a>
     </p>
   </body>
 </html>

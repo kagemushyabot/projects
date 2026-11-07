@@ -1,0 +1,112 @@
+---
+---
+
+<div class="video-modal" data-video-modal hidden>
+  <div class="video-modal-backdrop" data-video-close tabindex="-1" aria-hidden="true"></div>
+  <div
+    class="video-modal-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="video-modal-title"
+  >
+    <header class="video-modal-head">
+      <h2 id="video-modal-title" class="video-modal-title" data-video-modal-title></h2>
+      <button type="button" class="video-modal-close" data-video-close aria-label="Close video">
+        ✕
+      </button>
+    </header>
+    <div class="video-modal-body">
+      <div class="video-modal-frame" data-video-modal-frame></div>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    var modal = document.querySelector('[data-video-modal]');
+    if (!modal) return;
+    var frameHost = modal.querySelector('[data-video-modal-frame]');
+    var titleEl = modal.querySelector('[data-video-modal-title]');
+    var closeButtons = modal.querySelectorAll('[data-video-close]');
+    var lastFocus = null;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function focusables() {
+      return modal.querySelectorAll(
+        'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+    }
+
+    function trapFocus(e) {
+      if (e.key !== 'Tab' || modal.hasAttribute('hidden')) return;
+      var items = Array.prototype.slice.call(focusables());
+      if (!items.length) return;
+      var first = items[0];
+      var last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    function unloadPlayer() {
+      if (frameHost) frameHost.innerHTML = '';
+    }
+
+    function closeModal() {
+      modal.setAttribute('hidden', '');
+      modal.classList.remove('is-open');
+      document.body.classList.remove('video-modal-open');
+      unloadPlayer();
+      document.removeEventListener('keydown', onKeydown);
+      document.removeEventListener('keydown', trapFocus);
+      if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+    }
+
+    function onKeydown(e) {
+      if (e.key === 'Escape') closeModal();
+    }
+
+    function openModal(youtubeId, title, trigger) {
+      lastFocus = trigger;
+      if (titleEl) titleEl.textContent = title || 'Video';
+      if (frameHost) {
+        unloadPlayer();
+        var iframe = document.createElement('iframe');
+        iframe.setAttribute(
+          'src',
+          'https://www.youtube.com/embed/' + encodeURIComponent(youtubeId) + '?autoplay=1&rel=0',
+        );
+        iframe.setAttribute('title', title || 'YouTube video');
+        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+        iframe.setAttribute('allowfullscreen', 'true');
+        frameHost.appendChild(iframe);
+      }
+      modal.removeAttribute('hidden');
+      if (!reduced) modal.classList.add('is-open');
+      document.body.classList.add('video-modal-open');
+      document.addEventListener('keydown', onKeydown);
+      document.addEventListener('keydown', trapFocus);
+      var closeBtn = modal.querySelector('.video-modal-close');
+      if (closeBtn) closeBtn.focus();
+    }
+
+    document.addEventListener('click', function (e) {
+      var target = e.target;
+      if (!(target instanceof Element)) return;
+      var open = target.closest('[data-video-open]');
+      if (open) {
+        var id = open.getAttribute('data-youtube-id');
+        var title = open.getAttribute('data-video-title') || '';
+        if (id) openModal(id, title, open);
+        return;
+      }
+      if (target.closest('[data-video-close]')) closeModal();
+    });
+
+    if (reduced) modal.classList.add('video-modal--reduced');
+  })();
+</script>

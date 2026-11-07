@@ -29,7 +29,7 @@ export const homeWorkPillars: HomeWorkPillar[] = [
     num: '01',
     slug: 'custom',
     label: 'custom',
-    path: workExperienceHref('custom'),
+    path: workExperienceHref(),
     description:
       'Lead 3D art for branded AR applications and VR campaigns at Tactic Studio. Credits include Google Spotlight Stories (Pearl, On Ice), Facebook Spaces, and Monterey Bay Aquarium exhibition work.',
     layout: 'mosaic-a',
@@ -62,7 +62,7 @@ export const homeWorkPillars: HomeWorkPillar[] = [
     num: '02',
     slug: 'images',
     label: 'images',
-    path: workExperienceHref('images'),
+    path: workExperienceHref(),
     description:
       'Laser-scan and image-based modeling — Maya Skies at Chabot Space & Science Center, Trésors engloutis du Nil, Chichen Itzá reconstructions, and on-location scan pipelines at Insight Digital.',
     layout: 'mosaic-b',
@@ -94,7 +94,7 @@ export const homeWorkPillars: HomeWorkPillar[] = [
     num: '03',
     slug: 'animation',
     label: 'animation',
-    path: workExperienceHref('animation'),
+    path: workExperienceHref(),
     description:
       'Character rigging, animation, and cinematics — Unity integration at DeNA West, prototype Kinect work at Floathybrid, and game cinematics including Iron Man, Escape Plan, and Blood Brothers 2.',
     layout: 'mosaic-c',
