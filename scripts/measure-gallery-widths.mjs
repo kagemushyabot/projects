@@ -46,6 +46,18 @@ const report = await page.evaluate(() => {
       .map((el) => el.textContent?.trim())
       .filter((t) => /Water|Spotlight|Pearl|On Ice|Monterey/i.test(t || '')),
     pearlTitleCount: [...document.querySelectorAll('.gallery-spotlight-film__title')].filter((el) => el.textContent?.trim() === 'Pearl').length,
+    featurePromo: ['facebook-spaces', 'google-play-music-panorama-festival-nyc-2016'].map((id) => {
+      const li = document.getElementById(id);
+      const hero = li?.querySelector('.gallery-still-open img[src*="wp-import"], .gallery-feature-hero img');
+      const vid = li?.querySelector('.gallery-video-thumb img');
+      return {
+        id,
+        liWidth: li ? Math.round(li.getBoundingClientRect().width) : null,
+        className: li?.className ?? '',
+        heroWidth: hero ? Math.round(hero.getBoundingClientRect().width) : null,
+        videoWidth: vid ? Math.round(vid.getBoundingClientRect().width) : null,
+      };
+    }),
   };
 });
 

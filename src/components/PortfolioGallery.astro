@@ -1,6 +1,7 @@
 ---
 import {
   buildPortfolioGallery,
+  FEATURE_PROMOTE_IDS,
   SPOTLIGHT_BAND_IDS,
   SPOTLIGHT_GROUP_COPY,
   type GalleryProject,
@@ -36,7 +37,8 @@ function eagerMedia(project: GalleryProject): boolean {
     project.id === SPOTLIGHT_BAND_IDS[1] ||
     project.id === SPOTLIGHT_BAND_IDS[2] ||
     project.id === 'mission-to-the-deep-exhibit' ||
-    project.id === 'water-is-life-hidden-dangers-vr-campaign'
+    project.id === 'water-is-life-hidden-dangers-vr-campaign' ||
+    FEATURE_PROMOTE_IDS.includes(project.id as (typeof FEATURE_PROMOTE_IDS)[number])
   );
 }
 ---

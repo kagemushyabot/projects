@@ -358,6 +358,20 @@ export const SPOTLIGHT_BAND_IDS = [
   SPOTLIGHT_CLUSTER_IDS.onIce,
 ] as const;
 
+/** Full-width feature cards (large hero still + video below). */
+export const FEATURE_PROMOTE_IDS = [
+  'facebook-spaces',
+  'google-play-music-panorama-festival-nyc-2016',
+] as const;
+
+function isPinnedFeatureLayout(id: string): boolean {
+  return (
+    id === SPOTLIGHT_CLUSTER_IDS.water ||
+    id === 'mission-to-the-deep-exhibit' ||
+    (FEATURE_PROMOTE_IDS as readonly string[]).includes(id)
+  );
+}
+
 function canonicalSpotlightIds(projects: GalleryProject[]): void {
   for (const p of projects) {
     const t = normalizeTitle(p.title);
@@ -518,11 +532,12 @@ export function buildPortfolioGallery(): { projects: GalleryProject[]; dedupeRep
     if (
       p.id === SPOTLIGHT_CLUSTER_IDS.lead ||
       p.id === SPOTLIGHT_CLUSTER_IDS.pearl ||
-      p.id === SPOTLIGHT_CLUSTER_IDS.onIce ||
-      p.id === 'mission-to-the-deep-exhibit' ||
-      p.id === SPOTLIGHT_CLUSTER_IDS.water
+      p.id === SPOTLIGHT_CLUSTER_IDS.onIce
     ) {
       return p;
+    }
+    if (isPinnedFeatureLayout(p.id)) {
+      return { ...p, layout: 'feature' as const };
     }
     return { ...p, layout: LAYOUT_CYCLE[i % LAYOUT_CYCLE.length] };
   });
