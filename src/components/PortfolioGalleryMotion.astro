@@ -1,7 +1,7 @@
 <script is:inline>
   (function () {
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var nodes = document.querySelectorAll('.work-page .reveal');
+    var nodes = document.querySelectorAll('.work-page .reveal:not(.gallery-item)');
     if (reduced) {
       nodes.forEach(function (el) {
         el.classList.add('is-visible');

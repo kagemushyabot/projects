@@ -145,7 +145,8 @@ function eagerMedia(project: GalleryProject): boolean {
                                   src={assetUrl(hero.src)}
                                   alt={hero.alt}
                                   loading="eager"
-                                  decoding="async"
+                                  decoding="sync"
+                                  fetchpriority="high"
                                 />
                                 <StillZoomBadge />
                               </button>
@@ -242,7 +243,8 @@ function eagerMedia(project: GalleryProject): boolean {
                           src={assetUrl(img.src)}
                           alt={img.alt}
                           loading={eager ? 'eager' : 'lazy'}
-                          decoding="async"
+                          decoding={eager ? 'sync' : 'async'}
+                          fetchpriority={eager ? 'high' : undefined}
                         />
                         <StillZoomBadge />
                       </button>

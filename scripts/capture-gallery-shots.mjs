@@ -20,7 +20,6 @@ const page = await browser.newPage();
 await page.setViewport({ width: 1440, height: 900 });
 const cacheBust = `?v=${Date.now()}`;
 await page.goto(`${base}${cacheBust}`, { waitUntil: 'networkidle2', timeout: 90000 });
-await page.evaluate(() => document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible')));
 await page.waitForFunction(
   () => {
     const selectors = [
@@ -37,25 +36,63 @@ await page.waitForFunction(
   },
   { timeout: 30000 },
 );
-await new Promise((r) => setTimeout(r, 300));
+
+await page.evaluate(() => {
+  document.getElementById('water-is-life-hidden-dangers-vr-campaign')?.scrollIntoView({ block: 'start', behavior: 'instant' });
+});
+await new Promise((r) => setTimeout(r, 500));
+await page.waitForFunction(
+  () => {
+    const sample = (sel) => {
+      const img = document.querySelector(sel);
+      if (!img || !img.complete || img.naturalWidth === 0) return false;
+      const r = img.getBoundingClientRect();
+      if (r.width < 80 || r.height < 80) return false;
+      const c = document.createElement('canvas');
+      c.width = c.height = 8;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, 8, 8);
+      const d = ctx.getImageData(4, 4, 1, 1).data;
+      const lum = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2];
+      return lum > 18;
+    };
+    return (
+      sample('#water-is-life-hidden-dangers-vr-campaign .gallery-feature-hero img') &&
+      sample('#pearl .gallery-spotlight-film__hero img') &&
+      sample('#on-ice .gallery-spotlight-film__hero img')
+    );
+  },
+  { timeout: 20000 },
+);
+await new Promise((r) => setTimeout(r, 250));
 await page.screenshot({ path: `${outDir}/work-exp-intro-top.png`, fullPage: false });
 await page.screenshot({ path: `${outDir}/work-exp-gallery-compact.png` });
 
 if (await page.$('#water-is-life-hidden-dangers-vr-campaign')) {
-  const startY = await page.evaluate(() => {
-    const el = document.getElementById('water-is-life-hidden-dangers-vr-campaign');
-    return el ? el.getBoundingClientRect().top + window.scrollY : 0;
+  await page.evaluate(() => {
+    document.getElementById('water-is-life-hidden-dangers-vr-campaign')?.scrollIntoView({ block: 'start', behavior: 'instant' });
   });
-  const endY = await page.evaluate(() => {
-    const el = document.getElementById('mission-to-the-deep-exhibit');
+  await new Promise((r) => setTimeout(r, 400));
+  const clip = await page.evaluate(() => {
+    const water = document.getElementById('water-is-life-hidden-dangers-vr-campaign');
+    const onIce = document.getElementById('on-ice');
+    const monterey = document.getElementById('mission-to-the-deep-exhibit');
     const band = document.getElementById('google-spotlight-stories-group');
-    if (el) return el.getBoundingClientRect().bottom + window.scrollY;
-    if (band) return band.getBoundingClientRect().bottom + window.scrollY + 200;
-    return 0;
+    const start = (water?.getBoundingClientRect().top ?? 0) + window.scrollY;
+    const endEl = onIce ?? band;
+    const endBottom = (monterey?.getBoundingClientRect().bottom ??
+      (endEl ? endEl.getBoundingClientRect().bottom + 120 : start + 900)) + window.scrollY;
+    const pad = 12;
+    return {
+      x: 0,
+      y: Math.max(0, start - pad),
+      width: 1440,
+      height: Math.min(1800, Math.max(400, endBottom - start + pad * 2)),
+    };
   });
   await page.screenshot({
     path: `${outDir}/work-exp-gallery-pearl-group.png`,
-    clip: { x: 0, y: Math.max(0, startY - 12), width: 1440, height: Math.min(1400, endY - startY + 24) },
+    clip,
   });
 }
 
