@@ -9,6 +9,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "build:wip-preview": "node scripts/sync-wip-preview.mjs",
     "deploy:gh-pages": "astro build && npx gh-pages -d dist --dotfiles",
     "astro": "astro"
   },
