@@ -25,9 +25,9 @@ await page.waitForFunction(
   () => {
     const selectors = [
       '#water-is-life-hidden-dangers-vr-campaign img[src*="water-is-life"]',
-      '#google-spotlight-stories img[src*="image1"]',
-      '#pearl img[src*="image3"]',
-      '#on-ice img[src*="image4"]',
+      '#google-spotlight-stories-group img[src*="image1"]',
+      '#pearl .gallery-spotlight-film__hero img[src*="image3"]',
+      '#on-ice .gallery-spotlight-film__hero img[src*="image4"]',
       '#mission-to-the-deep-exhibit img[src*="mba_color"]',
     ];
     return selectors.every((sel) => {
@@ -48,7 +48,10 @@ if (await page.$('#water-is-life-hidden-dangers-vr-campaign')) {
   });
   const endY = await page.evaluate(() => {
     const el = document.getElementById('mission-to-the-deep-exhibit');
-    return el ? el.getBoundingClientRect().bottom + window.scrollY : 0;
+    const band = document.getElementById('google-spotlight-stories-group');
+    if (el) return el.getBoundingClientRect().bottom + window.scrollY;
+    if (band) return band.getBoundingClientRect().bottom + window.scrollY + 200;
+    return 0;
   });
   await page.screenshot({
     path: `${outDir}/work-exp-gallery-pearl-group.png`,

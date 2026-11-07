@@ -14,6 +14,14 @@ export interface GalleryVideo {
   label?: string;
 }
 
+export interface SpotlightFilmCopy {
+  filmTitle: string;
+  directorLabel: string;
+  synopsis: string;
+  filmHonors: string[];
+  junContribution: string;
+}
+
 export interface GalleryProject {
   id: string;
   title: string;
@@ -24,7 +32,15 @@ export interface GalleryProject {
   sources: PortfolioSource[];
   layout: 'compact' | 'wide' | 'tall' | 'feature' | 'spotlight-lead' | 'spotlight-peer';
   mergedFrom: string[];
+  spotlightFilm?: SpotlightFilmCopy;
 }
+
+export const SPOTLIGHT_GROUP_COPY = {
+  title: 'Google Spotlight Stories',
+  lede:
+    'Interactive animated shorts for phones and VR, released by Google Spotlight Stories with partner studios.',
+  junContribution: 'Jun Nagaoka — TD generalist, Evil Eye Pictures, San Francisco',
+} as const;
 
 export interface DedupeReportEntry {
   canonicalId: string;
@@ -365,24 +381,44 @@ function curateSpotlightCluster(projects: GalleryProject[]): GalleryProject[] {
   if (pearl) {
     pearl.title = 'PEARL';
     pearl.layout = 'feature';
-    pearl.notes = pearl.notes.filter(
-      (n) => !/^worked as td generalist$/i.test(n.trim()),
-    );
+    pearl.credit = 'Evil Eye Pictures · Google Spotlight Stories';
+    pearl.notes = [];
+    pearl.spotlightFilm = {
+      filmTitle: 'Pearl',
+      directorLabel: 'Directed by Patrick Osborne',
+      synopsis:
+        'A father and daughter crisscross the country in their hatchback, chasing their dreams — a musical road story built for cinema, 360° video, and VR.',
+      filmHonors: [
+        'Academy Award nominee, Best Animated Short Film (2017)',
+        'Annie Award nominee, Best Animated Short Subject (44th Annie Awards, 2017)',
+      ],
+      junContribution: 'TD generalist on interactive & cinematic versions',
+    };
   }
   const onIce = byId.get(SPOTLIGHT_CLUSTER_IDS.onIce);
   if (onIce) {
     onIce.title = 'ON ICE';
     onIce.layout = 'feature';
-    onIce.notes = onIce.notes.filter(
-      (n) => !/^worked as td generalist$/i.test(n.trim()),
-    );
+    onIce.credit = 'Evil Eye Pictures · Google Spotlight Stories';
+    onIce.notes = [];
+    onIce.spotlightFilm = {
+      filmTitle: 'On Ice',
+      directorLabel: 'Directed by Shannon Tindle',
+      synopsis:
+        'At a lavish ice show, the star performer’s spotlight is stolen by an unexpected — and furry — guest.',
+      filmHonors: [
+        'Annie Award nominee, Best Animated Short Subject (43rd Annie Awards, 2016)',
+      ],
+      junContribution: 'TD generalist on the Spotlight Stories production pipeline',
+    };
   }
   const lead = byId.get(SPOTLIGHT_CLUSTER_IDS.lead);
   if (lead) {
-    lead.title = 'Google Spotlight Stories';
+    lead.title = SPOTLIGHT_GROUP_COPY.title;
     lead.layout = 'spotlight-lead';
     lead.images = lead.images.filter((i) => imageBasename(i.src) === 'image1.jpeg');
     lead.videos = [];
+    lead.notes = [];
   }
 
   const clusterIds = [
