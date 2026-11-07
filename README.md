@@ -57,4 +57,14 @@ The Cursor GitHub app cannot create repos or enable Pages; an admin must complet
 
 ### Project site (`kagemushyabot/projects`)
 
-Pushes to `main` or `master` run [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml). That URL is `https://kagemushyabot.github.io/projects/` only if Pages is enabled on the `projects` repo (optional staging).
+Preview URL: **https://kagemushyabot.github.io/projects/** (branch **`gh-pages`**, folder root).
+
+Deploy the full Concept C build (launch mode + `/projects/` base):
+
+```bash
+npm run deploy:gh-pages
+```
+
+That runs `build:projects-preview` (`PUBLIC_SITE_LAUNCH=true`, `PUBLIC_BASE_PATH=/projects/`) and pushes `dist/` to `gh-pages`.
+
+Pushes to `main` or `master` also run [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) when Pages source is GitHub Actions (WIP until `PUBLIC_SITE_LAUNCH` repo variable is `true`).

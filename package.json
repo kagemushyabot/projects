@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "build:wip-preview": "node scripts/sync-wip-preview.mjs",
-    "deploy:gh-pages": "astro build && npx gh-pages -d dist --dotfiles",
+    "build:projects-preview": "PUBLIC_SITE_LAUNCH=true PUBLIC_BASE_PATH=/projects/ astro build",
+    "deploy:gh-pages": "npm run build:projects-preview && npx gh-pages -d dist --dotfiles",
     "astro": "astro"
   },
   "dependencies": {

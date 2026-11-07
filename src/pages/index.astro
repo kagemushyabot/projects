@@ -1,12 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { siteConfig } from '../config/site';
+import { withBase } from '../utils/paths';
 
 const works = [
-  { num: '01', href: '/custom/', label: 'custom', hint: 'AR / VR / film' },
-  { num: '02', href: '/images/', label: 'images', hint: 'Laser scan portfolio' },
-  { num: '03', href: '/animation/', label: 'animation', hint: 'TD · rigging · cinematics' },
-  { num: '04', href: '/resume/', label: 'resume', hint: '2027 PDF' },
+  { num: '01', href: withBase('/custom/'), label: 'custom', hint: 'AR / VR / film' },
+  { num: '02', href: withBase('/images/'), label: 'images', hint: 'Laser scan portfolio' },
+  { num: '03', href: withBase('/animation/'), label: 'animation', hint: 'TD · rigging · cinematics' },
+  { num: '04', href: withBase('/resume/'), label: 'resume', hint: '2027 PDF' },
 ];
 ---
 
