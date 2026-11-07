@@ -346,47 +346,44 @@
   border: 1px solid var(--border);
 }
 
-.gallery-video-overlay {
+/* Corner play badge — keeps thumbnail artwork visible */
+.gallery-video-badge {
   position: absolute;
-  inset: 0;
+  right: 0.35rem;
+  bottom: 0.35rem;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  background: linear-gradient(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.45));
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
   color: var(--text);
+  background: rgb(6 6 7 / 0.78);
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
   pointer-events: none;
-  transition: background 0.25s ease;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
 }
 
 .gallery-video-play-icon {
-  width: 2.75rem;
-  height: 2.75rem;
-  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.45));
-}
-
-.gallery-video-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  text-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+  width: 0.7rem;
+  height: 0.7rem;
+  display: block;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .gallery-video-thumb:hover .gallery-video-overlay,
-  .gallery-video-thumb:focus-visible .gallery-video-overlay {
-    background: linear-gradient(rgb(0 0 0 / 0.15), rgb(0 0 0 / 0.55));
+  .gallery-video-badge {
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
   }
 
-  .gallery-video-thumb:hover .gallery-video-play-icon,
-  .gallery-video-thumb:focus-visible .gallery-video-play-icon {
-    transform: scale(1.06);
-  }
-
-  .gallery-video-play-icon {
-    transition: transform 0.25s ease;
+  .gallery-video-thumb:hover .gallery-video-badge,
+  .gallery-video-thumb:focus-visible .gallery-video-badge {
+    background: rgb(6 6 7 / 0.88);
+    border-color: var(--accent-dim);
+    transform: scale(1.05);
   }
 }
 
