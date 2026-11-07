@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import presentation from '../../content/presentation.html?raw';
+---
+
+<BaseLayout title="custom" current="custom">
+  <h1 class="page-title">custom</h1>
+  <div class="wp-content" set:html={presentation} />
+</BaseLayout>

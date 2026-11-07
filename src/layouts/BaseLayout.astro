@@ -1,0 +1,60 @@
+---
+interface Props {
+  title: string;
+  current?: 'home' | 'custom' | 'images' | 'animation' | 'resume';
+}
+
+const { title, current } = Astro.props;
+const fullTitle = current === 'home' ? 'Jun Nagaoka' : `${title} · Jun Nagaoka`;
+
+const nav = [
+  { id: 'home' as const, href: '/', label: 'Home' },
+  { id: 'custom' as const, href: '/custom/', label: 'custom' },
+  { id: 'images' as const, href: '/images/', label: 'images' },
+  { id: 'animation' as const, href: '/animation/', label: 'animation' },
+  { id: 'resume' as const, href: '/resume/', label: 'resume' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Jun Nagaoka — Lead / Senior 3D Artist, AR/VR and real-time production." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <title>{fullTitle}</title>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <nav class="site-nav" aria-label="Primary">
+          {
+            nav.map((item, i) => (
+              <>
+                {i > 0 && <span class="sep" aria-hidden="true">|</span>}
+                <a href={item.href} aria-current={current === item.id ? 'page' : undefined}>
+                  {item.label}
+                </a>
+              </>
+            ))
+          }
+        </nav>
+      </header>
+      <main>
+        <slot />
+      </main>
+      <footer class="site-footer">Jun Nagaoka · 3D Generalist</footer>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>

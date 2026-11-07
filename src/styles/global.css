@@ -1,0 +1,323 @@
+:root {
+  --bg: #0a0a0b;
+  --bg-elevated: #121214;
+  --text: #e8e6e3;
+  --text-muted: #8a8884;
+  --border: #2a2a2e;
+  --accent: #d4a574;
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-display: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.site-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.site-header {
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+}
+
+.site-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current='page'] {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.site-nav .sep {
+  color: var(--border);
+  user-select: none;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 1.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: 0.08em;
+}
+
+/* Home — Concept C */
+.home-hero {
+  padding: 3rem 0 4rem;
+}
+
+.home-type {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+.home-type .line-jun {
+  display: block;
+  font-size: clamp(3.5rem, 14vw, 9rem);
+  color: var(--text);
+}
+
+.home-type .line-nagaoka {
+  display: block;
+  font-size: clamp(3.5rem, 14vw, 9rem);
+  color: var(--text-muted);
+}
+
+.home-role {
+  margin: 1.5rem 0 0;
+  font-size: 0.875rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.work-index {
+  list-style: none;
+  margin: 3rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.work-index li {
+  border-bottom: 1px solid var(--border);
+}
+
+.work-index a {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr auto;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1.25rem 0;
+  color: var(--text);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+}
+
+.work-index a:hover {
+  border-left-color: var(--accent);
+  text-decoration: none;
+}
+
+.work-index .num {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+}
+
+.work-index .label {
+  font-size: 1.25rem;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+}
+
+.work-index .hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Page titles */
+.page-title {
+  margin: 0 0 2rem;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: lowercase;
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+}
+
+/* Migrated WordPress content */
+.wp-content {
+  font-size: 0.9375rem;
+}
+
+.wp-content h1,
+.wp-content h2,
+.wp-content h3,
+.wp-content h4,
+.wp-content h5 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 2.5rem 0 1rem;
+  color: var(--text);
+}
+
+.wp-content h3 {
+  font-size: 1.125rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.wp-content h4 {
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.wp-content h5 {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.wp-content p {
+  margin: 0.75rem 0;
+  color: var(--text-muted);
+}
+
+.wp-content figure {
+  margin: 1.5rem 0;
+}
+
+.wp-content img {
+  display: block;
+  border: 1px solid var(--border);
+}
+
+.wp-content .slideshow-window,
+.wp-content .tiled-gallery {
+  margin: 1rem 0;
+}
+
+.wp-content iframe {
+  max-width: 100%;
+  border: 1px solid var(--border);
+}
+
+/* Resume */
+.resume-header {
+  margin-bottom: 2rem;
+}
+
+.resume-header h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  letter-spacing: 0.12em;
+}
+
+.resume-header .meta {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.resume-download {
+  display: inline-block;
+  margin-bottom: 2rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.resume-download:hover {
+  background: var(--bg-elevated);
+  text-decoration: none;
+}
+
+.resume-section {
+  margin-bottom: 2rem;
+}
+
+.resume-section h2 {
+  margin: 0 0 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.resume-section ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-muted);
+}
+
+.resume-section li {
+  margin-bottom: 0.5rem;
+}
+
+.resume-job {
+  margin-bottom: 1.5rem;
+}
+
+.resume-job h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.resume-job .dates {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}

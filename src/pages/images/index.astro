@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import images from '../../content/images.html?raw';
+---
+
+<BaseLayout title="images" current="images">
+  <h1 class="page-title">images</h1>
+  <div class="wp-content" set:html={images} />
+</BaseLayout>
