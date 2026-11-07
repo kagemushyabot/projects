@@ -342,6 +342,12 @@
   gap: 0.55rem;
 }
 
+.gallery-spotlight-film__videos .gallery-video-thumb {
+  width: 14rem;
+  max-width: 100%;
+  flex: 0 0 auto;
+}
+
 .gallery-spotlight-film__jun {
   margin: 0.15rem 0 0;
   font-size: 0.9375rem;
@@ -353,10 +359,11 @@
   min-height: 0;
 }
 
-.gallery-card-media--stacked {
+.gallery-card-media.gallery-card-media--stacked {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+  grid-template-columns: unset;
 }
 
 .gallery-card-media--stacked .gallery-feature-hero {

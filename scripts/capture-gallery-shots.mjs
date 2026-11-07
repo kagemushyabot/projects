@@ -80,5 +80,11 @@ if (openVideo) {
   await page.screenshot({ path: `${outDir}/work-exp-video-modal.png` });
 }
 
+await page.setViewport({ width: 390, height: 844 });
+await page.goto(`${base}${cacheBust}`, { waitUntil: 'networkidle2', timeout: 90000 });
+await page.evaluate(() => document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible')));
+await new Promise((r) => setTimeout(r, 500));
+await page.screenshot({ path: `${outDir}/work-exp-pearl-group-mobile.png`, fullPage: false });
+
 await browser.close();
 console.log('saved', outDir);

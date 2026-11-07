@@ -30,9 +30,9 @@ const report = await page.evaluate(() => {
   const rect = (el) => (el ? Math.round(el.getBoundingClientRect().width) : null);
   const water = document.getElementById('water-is-life-hidden-dangers-vr-campaign');
   const band = document.getElementById('google-spotlight-stories-group');
-  const waterHero = water?.querySelector('.gallery-feature-hero img, .gallery-image--still img');
-  const pearlHero = document.querySelector('#pearl .gallery-spotlight-film__hero img');
-  const pearlThumb = document.querySelector('#pearl .gallery-video-thumb--below-hero img');
+  const waterHero = water?.querySelector('.gallery-feature-hero img[src*="water"], img[src*="water-is-life"]');
+  const pearlHero = document.querySelector('#pearl .gallery-spotlight-film__hero img[src*="image3"]');
+  const pearlThumb = document.querySelector('#pearl .gallery-spotlight-film__videos .gallery-video-thumb img');
   return {
     viewport: window.innerWidth,
     waterLi: rect(water),
