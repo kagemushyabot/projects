@@ -73,22 +73,24 @@ if (videoTile) {
 const pearlStill = await page.$('#pearl [data-film-hero][data-image-open]');
 if (pearlStill) {
   await pearlStill.click();
-  await page.waitForFunction(
-    () => !document.querySelector('[data-image-modal]').hasAttribute('hidden'),
-    { timeout: 5000 },
-  );
-  await new Promise((r) => setTimeout(r, 400));
-  await page.screenshot({ path: `${outDir}/work-exp-image-lightbox.png` });
-  await page.click('[data-image-close]');
-  await new Promise((r) => setTimeout(r, 200));
+  const imageModal = await page.waitForSelector('[data-image-modal]:not([hidden])', { timeout: 8000 });
+  if (imageModal) {
+    await new Promise((r) => setTimeout(r, 400));
+    await page.screenshot({ path: `${outDir}/work-exp-image-lightbox.png` });
+    await page.click('[data-image-modal] [data-image-close]');
+    await page.waitForSelector('[data-image-modal][hidden]', { timeout: 5000 }).catch(() => {});
+    await new Promise((r) => setTimeout(r, 200));
+  }
 }
 
 const openVideo = await page.$('[data-video-open]');
 if (openVideo) {
   await openVideo.click();
-  await page.waitForFunction(() => !document.querySelector('[data-video-modal]').hasAttribute('hidden'), {
-    timeout: 5000,
-  });
+  await page
+    .waitForFunction(() => !document.querySelector('[data-video-modal]').hasAttribute('hidden'), {
+      timeout: 8000,
+    })
+    .catch(() => {});
   await new Promise((r) => setTimeout(r, 500));
   await page.screenshot({ path: `${outDir}/work-exp-video-modal.png` });
 }
