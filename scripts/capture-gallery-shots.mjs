@@ -18,25 +18,38 @@ const browser = await puppeteer.launch({
 
 const page = await browser.newPage();
 await page.setViewport({ width: 1440, height: 900 });
-await page.goto(base, { waitUntil: 'networkidle2', timeout: 60000 });
+const cacheBust = `?v=${Date.now()}`;
+await page.goto(`${base}${cacheBust}`, { waitUntil: 'networkidle2', timeout: 90000 });
 await page.evaluate(() => document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible')));
-await new Promise((r) => setTimeout(r, 400));
+await page.waitForFunction(
+  () => {
+    const selectors = [
+      '#water-is-life-hidden-dangers-vr-campaign img[src*="water-is-life"]',
+      '#google-spotlight-stories img[src*="image1"]',
+      '#pearl img[src*="image3"]',
+      '#on-ice img[src*="image4"]',
+      '#mission-to-the-deep-exhibit img[src*="mba_color"]',
+    ];
+    return selectors.every((sel) => {
+      const img = document.querySelector(sel);
+      return img && img.complete && img.naturalWidth > 0;
+    });
+  },
+  { timeout: 30000 },
+);
+await new Promise((r) => setTimeout(r, 300));
 await page.screenshot({ path: `${outDir}/work-exp-intro-top.png`, fullPage: false });
 await page.screenshot({ path: `${outDir}/work-exp-gallery-compact.png` });
 
-const pearlGroup = await page.$('#water-is-life-hidden-dangers-vr-campaign');
-if (pearlGroup) {
+if (await page.$('#water-is-life-hidden-dangers-vr-campaign')) {
   const startY = await page.evaluate(() => {
     const el = document.getElementById('water-is-life-hidden-dangers-vr-campaign');
     return el ? el.getBoundingClientRect().top + window.scrollY : 0;
   });
-  const endEl = await page.$('#mission-to-the-deep-exhibit');
-  const endY = endEl
-    ? await page.evaluate((id) => {
-        const el = document.getElementById(id);
-        return el ? el.getBoundingClientRect().bottom + window.scrollY : 0;
-      }, 'mission-to-the-deep-exhibit')
-    : startY + 1200;
+  const endY = await page.evaluate(() => {
+    const el = document.getElementById('mission-to-the-deep-exhibit');
+    return el ? el.getBoundingClientRect().bottom + window.scrollY : 0;
+  });
   await page.screenshot({
     path: `${outDir}/work-exp-gallery-pearl-group.png`,
     clip: { x: 0, y: Math.max(0, startY - 12), width: 1440, height: Math.min(1400, endY - startY + 24) },

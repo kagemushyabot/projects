@@ -244,8 +244,27 @@ function parseChunk(html: string, source: PortfolioSource): Omit<GalleryProject,
   return { title, credit, notes: notes.slice(0, 3), images, videos, sources: [source], keys };
 }
 
+const CANONICAL_DISPLAY_TITLES: Record<string, string> = {
+  pearl: 'PEARL',
+  'on ice': 'ON ICE',
+  'google spotlight stories': 'Google Spotlight Stories',
+  'mission to the deep exhibit': 'Monterey Bay Aquarium — Mission to the Deep',
+};
+
+function pickMergedTitle(a: string, b: string): string {
+  const aNorm = normalizeTitle(a);
+  const bNorm = normalizeTitle(b);
+  if (CANONICAL_DISPLAY_TITLES[aNorm]) return CANONICAL_DISPLAY_TITLES[aNorm];
+  if (CANONICAL_DISPLAY_TITLES[bNorm]) return CANONICAL_DISPLAY_TITLES[bNorm];
+  const aBad = /worked as td generalist/i.test(a) || a.length > 48;
+  const bBad = /worked as td generalist/i.test(b) || b.length > 48;
+  if (aBad && !bBad) return b;
+  if (bBad && !aBad) return a;
+  return a.length >= b.length ? a : b;
+}
+
 function mergeProjects(a: GalleryProject, b: GalleryProject, mergedKey: string): GalleryProject {
-  const title = a.title.length >= b.title.length ? a.title : b.title;
+  const title = pickMergedTitle(a.title, b.title);
   const images: GalleryImage[] = [];
   const seen = new Set<string>();
   for (const img of [...a.images, ...b.images]) {
@@ -310,12 +329,18 @@ function shouldMerge(a: GalleryProject, b: GalleryProject): string | null {
   return null;
 }
 
-const SPOTLIGHT_CLUSTER_IDS = {
+export const SPOTLIGHT_CLUSTER_IDS = {
   water: 'water-is-life-hidden-dangers-vr-campaign',
   lead: 'google-spotlight-stories',
   pearl: 'pearl',
   onIce: 'on-ice',
 } as const;
+
+export const SPOTLIGHT_BAND_IDS = [
+  SPOTLIGHT_CLUSTER_IDS.lead,
+  SPOTLIGHT_CLUSTER_IDS.pearl,
+  SPOTLIGHT_CLUSTER_IDS.onIce,
+] as const;
 
 function canonicalSpotlightIds(projects: GalleryProject[]): void {
   for (const p of projects) {
@@ -323,8 +348,13 @@ function canonicalSpotlightIds(projects: GalleryProject[]): void {
     if (t === 'google spotlight stories') p.id = SPOTLIGHT_CLUSTER_IDS.lead;
     if (t === 'pearl') p.id = SPOTLIGHT_CLUSTER_IDS.pearl;
     if (t === 'on ice') p.id = SPOTLIGHT_CLUSTER_IDS.onIce;
-    if (t.includes('mission to the deep')) p.id = 'mission-to-the-deep-exhibit';
+    if (t.includes('mission to the deep') || imageBasename(p.images[0]?.src ?? '') === 'mba_color_2line.jpg') {
+      p.id = 'mission-to-the-deep-exhibit';
+    }
   }
+
+  const water = projects.find((p) => p.id === SPOTLIGHT_CLUSTER_IDS.water);
+  if (water) water.layout = 'feature';
 }
 
 function curateSpotlightCluster(projects: GalleryProject[]): GalleryProject[] {
@@ -334,17 +364,25 @@ function curateSpotlightCluster(projects: GalleryProject[]): GalleryProject[] {
   const pearl = byId.get(SPOTLIGHT_CLUSTER_IDS.pearl);
   if (pearl) {
     pearl.title = 'PEARL';
-    pearl.layout = 'spotlight-peer';
+    pearl.layout = 'feature';
+    pearl.notes = pearl.notes.filter(
+      (n) => !/^worked as td generalist$/i.test(n.trim()),
+    );
   }
   const onIce = byId.get(SPOTLIGHT_CLUSTER_IDS.onIce);
   if (onIce) {
     onIce.title = 'ON ICE';
-    onIce.layout = 'spotlight-peer';
+    onIce.layout = 'feature';
+    onIce.notes = onIce.notes.filter(
+      (n) => !/^worked as td generalist$/i.test(n.trim()),
+    );
   }
   const lead = byId.get(SPOTLIGHT_CLUSTER_IDS.lead);
   if (lead) {
+    lead.title = 'Google Spotlight Stories';
     lead.layout = 'spotlight-lead';
     lead.images = lead.images.filter((i) => imageBasename(i.src) === 'image1.jpeg');
+    lead.videos = [];
   }
 
   const clusterIds = [
@@ -357,6 +395,12 @@ function curateSpotlightCluster(projects: GalleryProject[]): GalleryProject[] {
       p.id === 'mission-to-the-deep-exhibit' ||
       p.images.some((i) => imageBasename(i.src) === 'mba_color_2line.jpg'),
   );
+
+  if (monterey) {
+    monterey.title = 'Monterey Bay Aquarium — Mission to the Deep';
+    monterey.layout = 'feature';
+    monterey.id = 'mission-to-the-deep-exhibit';
+  }
 
   const rest = projects.filter(
     (p) => !clusterIds.includes(p.id as (typeof clusterIds)[number]) && p !== monterey,
@@ -435,8 +479,15 @@ export function buildPortfolioGallery(): { projects: GalleryProject[]; dedupeRep
   );
 
   projects = projects.map((p, i) => {
-    if (p.layout === 'spotlight-lead' || p.layout === 'spotlight-peer') return p;
-    if (p.id === SPOTLIGHT_CLUSTER_IDS.water) return { ...p, layout: 'feature' as const };
+    if (
+      p.id === SPOTLIGHT_CLUSTER_IDS.lead ||
+      p.id === SPOTLIGHT_CLUSTER_IDS.pearl ||
+      p.id === SPOTLIGHT_CLUSTER_IDS.onIce ||
+      p.id === 'mission-to-the-deep-exhibit' ||
+      p.id === SPOTLIGHT_CLUSTER_IDS.water
+    ) {
+      return p;
+    }
     return { ...p, layout: LAYOUT_CYCLE[i % LAYOUT_CYCLE.length] };
   });
 
