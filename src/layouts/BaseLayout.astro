@@ -1,10 +1,10 @@
 ---
 import { siteConfig } from '../config/site';
-import { withBase } from '../utils/paths';
+import { withBase, workExperienceHref } from '../utils/paths';
 
 interface Props {
   title: string;
-  current?: 'home' | 'custom' | 'images' | 'animation' | 'resume';
+  current?: 'home' | 'work-experience' | 'resume';
 }
 
 const { title, current } = Astro.props;
@@ -13,9 +13,7 @@ const fullTitle = current === 'home' ? 'Jun Nagaoka' : `${title} · Jun Nagaoka`
 const nav = siteConfig.launched
   ? [
       { id: 'home' as const, href: withBase('/'), label: 'Home' },
-      { id: 'custom' as const, href: withBase('/custom/'), label: 'custom' },
-      { id: 'images' as const, href: withBase('/images/'), label: 'images' },
-      { id: 'animation' as const, href: withBase('/animation/'), label: 'animation' },
+      { id: 'work-experience' as const, href: workExperienceHref(), label: 'work experience' },
       { id: 'resume' as const, href: withBase('/resume/'), label: 'resume' },
     ]
   : [];

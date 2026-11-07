@@ -1,10 +1,5 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import images from '../../content/images.html?raw';
-import { rewriteImportedHtml } from '../../utils/paths';
+import RedirectToWorkSection from '../../components/RedirectToWorkSection.astro';
 ---
 
-<BaseLayout title="images" current="images">
-  <h1 class="page-title">images</h1>
-  <div class="wp-content" set:html={rewriteImportedHtml(images)} />
-</BaseLayout>
+<RedirectToWorkSection section="images" label="images" />

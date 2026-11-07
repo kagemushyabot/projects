@@ -1,10 +1,5 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import presentation from '../../content/presentation.html?raw';
-import { rewriteImportedHtml } from '../../utils/paths';
+import RedirectToWorkSection from '../../components/RedirectToWorkSection.astro';
 ---
 
-<BaseLayout title="custom" current="custom">
-  <h1 class="page-title">custom</h1>
-  <div class="wp-content" set:html={rewriteImportedHtml(presentation)} />
-</BaseLayout>
+<RedirectToWorkSection section="custom" label="custom" />

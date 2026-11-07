@@ -1,0 +1,123 @@
+/* Unified work experience page */
+
+.work-page-head {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.work-page-kicker {
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.work-page-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+}
+
+.work-page-lead {
+  margin: 1rem 0 0;
+  max-width: 42rem;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.work-page-jump {
+  margin-top: 1.75rem;
+}
+
+.work-page-jump ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.work-page-jump li {
+  border-bottom: 1px solid var(--border);
+}
+
+.work-page-jump a {
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  align-items: baseline;
+  gap: 0.75rem 1rem;
+  padding: 0.9rem 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.work-page-jump a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.work-page-jump-num {
+  font-size: 0.6875rem;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+}
+
+.work-page-jump-label {
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+}
+
+.work-page-jump-hint {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.work-page-section {
+  scroll-margin-top: 1.5rem;
+  padding: 2.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.work-page-section:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.work-page-section-title {
+  margin: 0 0 1.75rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: lowercase;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  color: var(--text);
+}
+
+.work-page-section-num {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .work-page-jump a {
+    grid-template-columns: 2.5rem 1fr;
+  }
+
+  .work-page-jump-hint {
+    grid-column: 2;
+  }
+}

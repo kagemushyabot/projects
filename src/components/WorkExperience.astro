@@ -1,8 +1,9 @@
 ---
 import { homeWorkPillars } from '../data/homeWork';
-import { withBase } from '../utils/paths';
+import { withBase, workExperienceHref } from '../utils/paths';
 
 const resumeHref = withBase('/resume/');
+const workHref = workExperienceHref();
 
 function mediaSrc(item: (typeof homeWorkPillars)[number]['media'][number]) {
   if (item.kind === 'video') {
@@ -15,17 +16,23 @@ function mediaSrc(item: (typeof homeWorkPillars)[number]['media'][number]) {
 <section class="work-xp" aria-labelledby="work-xp-heading">
   <header class="work-xp-head reveal">
     <p class="work-xp-kicker">Portfolio · 01 — 03</p>
-    <h2 id="work-xp-heading" class="work-xp-title">Work experience</h2>
+    <h2 id="work-xp-heading" class="work-xp-title">
+      <a href={workHref}>Work experience</a>
+    </h2>
     <p class="work-xp-lead">
-      Commercial AR/VR, heritage laser-scan modeling, and real-time animation — grouped by how the
-      work is presented on this site. Full project breakdowns live on each section page.
+      Commercial AR/VR, heritage laser-scan modeling, and real-time animation — previewed here, with
+      full migrated galleries on one scrollable page.
     </p>
+    <a class="work-xp-all" href={workHref}>
+      View full work experience
+      <span aria-hidden="true"> →</span>
+    </a>
   </header>
 
   <div class="work-xp-grid">
     {
       homeWorkPillars.map((pillar, index) => {
-        const href = withBase(pillar.path);
+        const href = pillar.path;
         return (
           <article
             class={`work-pillar work-pillar--${pillar.slug} reveal`}

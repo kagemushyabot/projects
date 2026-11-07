@@ -7,9 +7,8 @@ Static portfolio for **Jun Nagaoka** — migrated from WordPress to [Astro](http
 | Path | Content |
 |------|---------|
 | `/` | Home (Concept C when launched; WIP screen otherwise) |
-| `/custom/` | Former `/presentation/` |
-| `/images/` | Laser-scan portfolio gallery |
-| `/animation/` | Former `/movies/` |
+| `/work-experience/` | Unified portfolio (custom, images, animation sections) |
+| `/custom/`, `/images/`, `/animation/` | Redirect to `/work-experience/#…` |
 | `/resume/` | 2027 resume HTML + PDF |
 
 ## Launch / WIP mode
