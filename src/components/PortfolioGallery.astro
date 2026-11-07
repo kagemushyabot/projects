@@ -1,6 +1,6 @@
 ---
 import { buildPortfolioGallery } from '../utils/portfolioGallery';
-import { withBase } from '../utils/paths';
+import { assetUrl } from '../utils/paths';
 import PortfolioVideoModal from './PortfolioVideoModal.astro';
 
 const { projects } = buildPortfolioGallery();
@@ -13,7 +13,11 @@ function thumbSrc(youtubeId: string) {
 <div class="portfolio-gallery" id="work-main">
   <ul class="gallery-grid" role="list">
     {
-      projects.map((project, index) => (
+      projects.map((project, index) => {
+        const maxImages = project.layout === 'feature' ? 14 : project.layout === 'wide' ? 10 : 8;
+        const visibleImages = project.images.slice(0, maxImages);
+        const extraImages = project.images.length - visibleImages.length;
+        return (
         <li
           id={project.id}
           class:list={['gallery-item', 'reveal', `gallery-item--${project.layout}`]}
@@ -52,16 +56,23 @@ function thumbSrc(youtubeId: string) {
                   ))
                 }
                 {
-                  project.images.map((img) => (
+                  visibleImages.map((img) => (
                     <figure class="gallery-image">
                       <img
-                        src={withBase(img.src)}
+                        src={assetUrl(img.src)}
                         alt={img.alt}
                         loading="lazy"
                         decoding="async"
                       />
                     </figure>
                   ))
+                }
+                {
+                  extraImages > 0 && (
+                    <p class="gallery-more-media" aria-label={`${extraImages} more images in this project`}>
+                      +{extraImages}
+                    </p>
+                  )
                 }
               </div>
             )}
@@ -77,7 +88,8 @@ function thumbSrc(youtubeId: string) {
             }
           </article>
         </li>
-      ))
+        );
+      })
     }
   </ul>
 </div>

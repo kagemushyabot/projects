@@ -1,7 +1,6 @@
 import presentation from '../content/presentation.html?raw';
 import images from '../content/images.html?raw';
 import movies from '../content/movies.html?raw';
-import { rewriteImportedHtml } from './paths';
 
 export type PortfolioSource = 'presentation' | 'images' | 'movies';
 
@@ -34,10 +33,11 @@ export interface DedupeReportEntry {
   sources: PortfolioSource[];
 }
 
+/** Parse raw WP HTML; asset paths stay `/assets/...` until render (`assetUrl`). */
 const SOURCES: { source: PortfolioSource; html: string; stripHero: boolean }[] = [
-  { source: 'presentation', html: rewriteImportedHtml(presentation), stripHero: true },
-  { source: 'images', html: rewriteImportedHtml(images), stripHero: false },
-  { source: 'movies', html: rewriteImportedHtml(movies), stripHero: false },
+  { source: 'presentation', html: presentation, stripHero: true },
+  { source: 'images', html: images, stripHero: false },
+  { source: 'movies', html: movies, stripHero: false },
 ];
 
 const LAYOUT_CYCLE: GalleryProject['layout'][] = [

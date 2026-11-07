@@ -10,9 +10,17 @@ export function workExperienceHref(_section?: WorkExperienceSection): string {
 /** Prefix an app-root path with the configured Astro base (e.g. `/projects/`). */
 export function withBase(path: string): string {
   const base = import.meta.env.BASE_URL;
+  if (base !== '/' && (path === base || path.startsWith(base))) return path;
   if (!path.startsWith('/')) return `${base}${path}`;
   if (path === '/') return base;
   return `${base}${path.slice(1)}`;
+}
+
+/** Normalize migrated asset path to a single base-prefixed URL. */
+export function assetUrl(path: string): string {
+  const normalized = path.replace(/^\/+/, '/');
+  if (normalized.startsWith('/assets/')) return withBase(normalized);
+  return withBase(normalized);
 }
 
 /** Fix root-absolute `src` / `href` in migrated WordPress HTML for project Pages. */
