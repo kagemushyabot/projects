@@ -1,39 +1,20 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import HomeHero from '../components/HomeHero.astro';
+import WorkExperience from '../components/WorkExperience.astro';
+import HomeMotion from '../components/HomeMotion.astro';
 import { siteConfig } from '../config/site';
-import { withBase } from '../utils/paths';
-
-const works = [
-  { num: '01', href: withBase('/custom/'), label: 'custom', hint: 'AR / VR / film' },
-  { num: '02', href: withBase('/images/'), label: 'images', hint: 'Laser scan portfolio' },
-  { num: '03', href: withBase('/animation/'), label: 'animation', hint: 'TD · rigging · cinematics' },
-  { num: '04', href: withBase('/resume/'), label: 'resume', hint: '2027 PDF' },
-];
+import { homeSummary } from '../data/homeWork';
 ---
 
 <BaseLayout title="Jun Nagaoka" current="home">
   {
     siteConfig.launched ? (
-      <section class="home-hero">
-        <h1 class="home-type">
-          <span class="line-jun">JUN</span>
-          <span class="line-nagaoka">NAGAOKA</span>
-        </h1>
-        <p class="home-role">Lead / Senior 3D Artist · 3D Generalist · Technical Artist</p>
-        <ul class="work-index">
-          {
-            works.map((w) => (
-              <li>
-                <a href={w.href}>
-                  <span class="num">{w.num}</span>
-                  <span class="label">{w.label}</span>
-                  <span class="hint">{w.hint}</span>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </section>
+      <>
+        <HomeHero summary={homeSummary} />
+        <WorkExperience />
+        <HomeMotion />
+      </>
     ) : (
       <section class="wip-hero" aria-labelledby="wip-heading">
         <h1 id="wip-heading" class="home-type">
@@ -50,3 +31,7 @@ const works = [
     )
   }
 </BaseLayout>
+
+<style is:global>
+  @import '../styles/home.css';
+</style>
