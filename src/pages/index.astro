@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const works = [
+  { num: '01', href: '/custom/', label: 'custom', hint: 'AR / VR / film' },
+  { num: '02', href: '/images/', label: 'images', hint: 'Laser scan portfolio' },
+  { num: '03', href: '/animation/', label: 'animation', hint: 'TD · rigging · cinematics' },
+  { num: '04', href: '/resume/', label: 'resume', hint: '2027 PDF' },
+];
+---
+
+<BaseLayout title="Jun Nagaoka" current="home">
+  <section class="home-hero">
+    <h1 class="home-type">
+      <span class="line-jun">JUN</span>
+      <span class="line-nagaoka">NAGAOKA</span>
+    </h1>
+    <p class="home-role">Lead / Senior 3D Artist · 3D Generalist · Technical Artist</p>
+    <ul class="work-index">
+      {
+        works.map((w) => (
+          <li>
+            <a href={w.href}>
+              <span class="num">{w.num}</span>
+              <span class="label">{w.label}</span>
+              <span class="hint">{w.hint}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
