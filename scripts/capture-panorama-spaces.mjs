@@ -2,6 +2,7 @@
  * Screenshot Facebook Spaces + Google Play Music Panorama feature cards.
  */
 import puppeteer from 'puppeteer-core';
+import { writeFileSync } from 'node:fs';
 
 const outDir = process.argv[2] || '/cursor/stores/self/media';
 const origin = process.env.PREVIEW_ORIGIN || 'https://kagemushyabot.github.io';
@@ -26,17 +27,51 @@ await page.waitForFunction(
   { timeout: 30000 },
 );
 
-const clip = await page.evaluate(() => {
-  const a = document.getElementById('facebook-spaces');
-  const b = document.getElementById('google-play-music-panorama-festival-nyc-2016');
-  if (!a || !b) return null;
-  const top = a.getBoundingClientRect().top + window.scrollY - 8;
-  const bottom = b.getBoundingClientRect().bottom + window.scrollY + 8;
-  return { x: 0, y: top, width: window.innerWidth, height: bottom - top };
-});
+async function shotCard(id) {
+  const box = await page.evaluate((cardId) => {
+    const el = document.getElementById(cardId);
+    if (!el) return null;
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    const r = el.getBoundingClientRect();
+    return { x: r.x, y: r.y, width: r.width, height: r.height };
+  }, id);
+  if (!box) return null;
+  await new Promise((r) => setTimeout(r, 250));
+  return page.screenshot({ encoding: 'base64', clip: { ...box, x: Math.max(0, box.x - 4), width: box.width + 8, height: box.height + 8 } });
+}
 
-if (clip) {
-  await page.screenshot({ path: `${outDir}/work-exp-panorama-spaces-feature.png`, clip });
+const fbB64 = await shotCard('facebook-spaces');
+const gpB64 = await shotCard('google-play-music-panorama-festival-nyc-2016');
+
+if (fbB64 && gpB64) {
+  const stitched = await page.evaluate(
+    async (a, b, gap) => {
+      const load = (src) =>
+        new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = src;
+        });
+      const imgA = await load(`data:image/png;base64,${a}`);
+      const imgB = await load(`data:image/png;base64,${b}`);
+      const w = Math.max(imgA.width, imgB.width);
+      const h = imgA.height + gap + imgB.height;
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#050508';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(imgA, 0, 0);
+      ctx.drawImage(imgB, 0, imgA.height + gap);
+      return canvas.toDataURL('image/png').split(',')[1];
+    },
+    fbB64,
+    gpB64,
+    12,
+  );
+  writeFileSync(`${outDir}/work-exp-panorama-spaces-feature.png`, Buffer.from(stitched, 'base64'));
 }
 
 const mobile = await browser.newPage();
@@ -49,8 +84,8 @@ await mobile.screenshot({ path: `${outDir}/work-exp-panorama-spaces-mobile.png`,
 const sizes = await page.evaluate(() => {
   const m = (id) => {
     const li = document.getElementById(id);
-    const hero = li?.querySelector('.gallery-still-open--hero, .gallery-feature-hero img, .gallery-still-open img');
-    const vid = li?.querySelector('.gallery-video-thumb--below-hero, .gallery-video-thumb');
+    const hero = li?.querySelector('.gallery-still-open img');
+    const vid = li?.querySelector('.gallery-video-thumb');
     return {
       li: li ? Math.round(li.getBoundingClientRect().width) : null,
       hero: hero ? Math.round(hero.getBoundingClientRect().width) : null,
