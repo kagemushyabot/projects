@@ -40,6 +40,14 @@ const SOURCES: { source: PortfolioSource; html: string; stripHero: boolean }[] =
   { source: 'movies', html: movies, stripHero: false },
 ];
 
+/** WordPress-era section nav icons (not portfolio media). */
+const LEGACY_NAV_ICON_FILES = new Set([
+  'anim_icon.png',
+  'misc_icon.png',
+  'resume_icon1.png',
+  'still_icon2.png',
+]);
+
 const LAYOUT_CYCLE: GalleryProject['layout'][] = [
   'compact',
   'wide',
@@ -73,6 +81,20 @@ function slugify(title: string, index: number): string {
       .replace(/\s+/g, '-')
       .replace(/^-+|-+$/g, '') || `project-${index}`;
   return base;
+}
+
+function isObsoleteNavChunk(html: string): boolean {
+  const imgBasenames = [
+    ...html.matchAll(/\/assets\/wp-import\/([^"'?#\s]+)/gi),
+    ...html.matchAll(/wp-import\/([^"'?#\s]+)/gi),
+  ].map((m) => m[1].split('?')[0]);
+  if (!imgBasenames.length) return false;
+  const onlyLegacy = imgBasenames.every((b) => LEGACY_NAV_ICON_FILES.has(b));
+  if (onlyLegacy) return true;
+  const hasLegacyNavLink =
+    /junnagaoka\.wordpress\.com\/(movies|images|miscellaneous|test)\//i.test(html) &&
+    imgBasenames.some((b) => LEGACY_NAV_ICON_FILES.has(b));
+  return hasLegacyNavLink;
 }
 
 function splitChunks(html: string, stripHero: boolean): string[] {
@@ -111,6 +133,7 @@ function parseChunk(html: string, source: PortfolioSource): Omit<GalleryProject,
     const src = tag[0].match(/\ssrc="([^"]+)"/i)?.[1];
     if (!src || !src.includes('/assets/wp-import/')) continue;
     const basename = src.split('/').pop() || src;
+    if (LEGACY_NAV_ICON_FILES.has(basename)) continue;
     if (seenImg.has(basename)) continue;
     seenImg.add(basename);
     const alt = tag[0].match(/\salt="([^"]*)"/i)?.[1] || basename;
@@ -194,6 +217,10 @@ function shouldMerge(a: GalleryProject, b: GalleryProject): string | null {
 
 let galleryCache: { projects: GalleryProject[]; dedupeReport: DedupeReportEntry[] } | null = null;
 
+export function resetPortfolioGalleryCache(): void {
+  galleryCache = null;
+}
+
 export function buildPortfolioGallery(): { projects: GalleryProject[]; dedupeReport: DedupeReportEntry[] } {
   if (galleryCache) return galleryCache;
   const raw: (GalleryProject & { keys: string[] })[] = [];
@@ -201,6 +228,7 @@ export function buildPortfolioGallery(): { projects: GalleryProject[]; dedupeRep
 
   for (const { source, html, stripHero } of SOURCES) {
     for (const chunk of splitChunks(html, stripHero)) {
+      if (isObsoleteNavChunk(chunk)) continue;
       const parsed = parseChunk(chunk, source);
       const id = slugify(parsed.title, idx++);
       raw.push({

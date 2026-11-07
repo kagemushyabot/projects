@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import WorkExperienceIntro from '../../components/WorkExperienceIntro.astro';
 import PortfolioGallery from '../../components/PortfolioGallery.astro';
 import PortfolioGalleryMotion from '../../components/PortfolioGalleryMotion.astro';
 import { buildPortfolioGallery } from '../../utils/portfolioGallery';
@@ -22,6 +23,8 @@ const { projects } = buildPortfolioGallery();
         {projects.length} projects
       </p>
     </header>
+
+    <WorkExperienceIntro />
 
     <PortfolioGallery />
     <PortfolioGalleryMotion />
