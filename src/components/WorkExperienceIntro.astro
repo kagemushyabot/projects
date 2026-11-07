@@ -1,7 +1,8 @@
 ---
 import { assetUrl } from '../utils/paths';
 
-const tacticImage = assetUrl('/assets/work-intro/tactic-studio-home.png');
+const tacticImage = assetUrl('/assets/work-intro/tactic-studio-featured.png');
+const splatticImage = assetUrl('/assets/work-intro/splattic-featured.png');
 const tacticUrl = 'https://tactic.studio/';
 const splatticUrl = 'https://www.splattic.com/';
 ---
@@ -11,16 +12,16 @@ const splatticUrl = 'https://www.splattic.com/';
 
   <article class="work-intro-block work-intro-block--tactic reveal">
     <a
-      class="work-intro-visual"
+      class="work-intro-visual work-intro-visual--featured"
       href={tacticUrl}
       target="_blank"
       rel="noopener noreferrer"
     >
       <img
         src={tacticImage}
-        alt="Tactic Studio website homepage"
-        width="1280"
-        height="800"
+        alt="Tactic Studio — AR and VR project showcase"
+        width="2117"
+        height="1298"
         loading="eager"
         decoding="async"
       />
@@ -38,6 +39,21 @@ const splatticUrl = 'https://www.splattic.com/';
   </article>
 
   <article class="work-intro-block work-intro-block--splattic reveal" style="--reveal-delay: 80ms">
+    <a
+      class="work-intro-visual work-intro-visual--featured"
+      href={splatticUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img
+        src={splatticImage}
+        alt="Splattic — AR/VR/XR workflow web app"
+        width="2106"
+        height="1301"
+        loading="eager"
+        decoding="async"
+      />
+    </a>
     <div class="work-intro-copy">
       <p class="work-intro-label">Current</p>
       <h3 class="work-intro-title">

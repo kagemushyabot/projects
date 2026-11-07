@@ -54,18 +54,22 @@
   align-items: start;
 }
 
-.work-intro-block--tactic {
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-}
-
+.work-intro-block--tactic,
 .work-intro-block--splattic {
-  padding: 1rem 1.1rem;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.95fr);
+  gap: 1.25rem;
+  padding: 1rem;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
 }
 
+.work-intro-block--splattic {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+}
+
 @media (max-width: 800px) {
-  .work-intro-block--tactic {
+  .work-intro-block--tactic,
+  .work-intro-block--splattic {
     grid-template-columns: 1fr;
   }
 }
@@ -73,23 +77,23 @@
 .work-intro-visual {
   display: block;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   line-height: 0;
+  background: #0a0a0c;
 }
 
-.work-intro-visual img {
+.work-intro-visual--featured img {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 14rem;
-  object-fit: cover;
-  object-position: top center;
+  object-fit: contain;
+  object-position: center top;
 }
 
 .work-intro-label {
   margin: 0 0 0.35rem;
-  font-size: 0.625rem;
-  letter-spacing: 0.18em;
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--accent);
 }
@@ -114,8 +118,8 @@
 
 .work-intro-text {
   margin: 0.65rem 0 0;
-  font-size: 0.875rem;
-  line-height: 1.6;
+  font-size: 1rem;
+  line-height: 1.65;
   color: var(--text-secondary);
   max-width: 40rem;
 }
@@ -123,8 +127,8 @@
 .work-intro-cta {
   display: inline-block;
   margin-top: 0.85rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent);
   text-decoration: none;
@@ -142,8 +146,8 @@
 
 .work-page-kicker {
   margin: 0 0 0.5rem;
-  font-size: 0.6875rem;
-  letter-spacing: 0.22em;
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent);
 }
@@ -161,15 +165,15 @@
 .work-page-lead {
   margin: 1rem 0 0;
   max-width: 38rem;
-  font-size: 0.875rem;
-  line-height: 1.6;
+  font-size: 1rem;
+  line-height: 1.65;
   color: var(--text-secondary);
 }
 
 .work-page-count {
   margin: 0.75rem 0 0;
-  font-size: 0.6875rem;
-  letter-spacing: 0.16em;
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -253,7 +257,7 @@
 .gallery-card-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(0.875rem, 1.6vw, 1.05rem);
+  font-size: clamp(1rem, 1.6vw, 1.125rem);
   font-weight: 600;
   line-height: 1.35;
   letter-spacing: 0.04em;
@@ -263,10 +267,10 @@
 
 .gallery-card-credit {
   margin: 0.25rem 0 0;
-  font-size: 0.625rem;
-  letter-spacing: 0.12em;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .gallery-card-media {
@@ -338,27 +342,60 @@
   object-fit: cover;
 }
 
-.gallery-video-play {
+.gallery-image--still {
+  border: 1px solid var(--border);
+}
+
+.gallery-video-overlay {
   position: absolute;
-  inset: auto 0.25rem 0.25rem auto;
-  width: 1.35rem;
-  height: 1.35rem;
+  inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 0.45rem;
+  gap: 0.35rem;
+  background: linear-gradient(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.45));
   color: var(--text);
-  background: rgb(6 6 7 / 0.78);
-  border: 1px solid var(--border-strong);
   pointer-events: none;
+  transition: background 0.25s ease;
+}
+
+.gallery-video-play-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.45));
+}
+
+.gallery-video-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gallery-video-thumb:hover .gallery-video-overlay,
+  .gallery-video-thumb:focus-visible .gallery-video-overlay {
+    background: linear-gradient(rgb(0 0 0 / 0.15), rgb(0 0 0 / 0.55));
+  }
+
+  .gallery-video-thumb:hover .gallery-video-play-icon,
+  .gallery-video-thumb:focus-visible .gallery-video-play-icon {
+    transform: scale(1.06);
+  }
+
+  .gallery-video-play-icon {
+    transition: transform 0.25s ease;
+  }
 }
 
 .gallery-card-notes {
   margin: 0.15rem 0 0;
   padding: 0 0.15rem 0 1rem;
-  font-size: 0.625rem;
-  line-height: 1.45;
-  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
 .gallery-card-notes li {

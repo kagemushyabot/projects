@@ -20,6 +20,17 @@ await new Promise((r) => setTimeout(r, 400));
 await page.screenshot({ path: `${outDir}/work-exp-intro-top.png`, fullPage: false });
 await page.screenshot({ path: `${outDir}/work-exp-gallery-compact.png` });
 
+const videoTile = await page.$('[data-video-open]');
+if (videoTile) {
+  const box = await videoTile.boundingBox();
+  if (box) {
+    await page.screenshot({
+      path: `${outDir}/work-exp-video-tile.png`,
+      clip: { ...box, x: Math.max(0, box.x - 8), y: Math.max(0, box.y - 8), width: box.width + 16, height: box.height + 16 },
+    });
+  }
+}
+
 await page.click('[data-video-open]');
 await page.waitForFunction(() => !document.querySelector('[data-video-modal]').hasAttribute('hidden'), {
   timeout: 5000,

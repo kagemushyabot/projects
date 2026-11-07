@@ -13,7 +13,7 @@ if (!existsSync(htmlPath)) {
 const html = readFileSync(htmlPath, 'utf8');
 const urls = [
   ...new Set(
-    [...html.matchAll(/src="((?:https?:\/\/[^"]+)|(?:\/projects\/assets\/wp-import\/[^"]+))"/g)]
+    [...html.matchAll(/src="((?:https?:\/\/[^"]+)|(?:\/projects\/assets\/(?:wp-import|work-intro)\/[^"]+))"/g)]
       .map((m) => m[1])
       .filter((u) => u.includes('wp-import')),
   ),

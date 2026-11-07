@@ -40,12 +40,13 @@ const SOURCES: { source: PortfolioSource; html: string; stripHero: boolean }[] =
   { source: 'movies', html: movies, stripHero: false },
 ];
 
-/** WordPress-era section nav icons (not portfolio media). */
+/** WordPress-era nav / decorative link icons — not project media. */
 const LEGACY_NAV_ICON_FILES = new Set([
   'anim_icon.png',
   'misc_icon.png',
   'resume_icon1.png',
   'still_icon2.png',
+  'dropbox-icon.png',
 ]);
 
 const LAYOUT_CYCLE: GalleryProject['layout'][] = [
