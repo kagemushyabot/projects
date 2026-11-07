@@ -35,7 +35,7 @@ const nav = siteConfig.launched
     />
     <title>{fullTitle}</title>
   </head>
-  <body>
+  <body class:list={[{ 'is-home': current === 'home', 'is-work': current === 'work-experience' }]}>
     <div class="site-shell">
       {
         siteConfig.launched && (

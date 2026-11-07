@@ -1,9 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import WorkSectionRail from '../../components/WorkSectionRail.astro';
+import WorkExperienceMotion from '../../components/WorkExperienceMotion.astro';
 import presentation from '../../content/presentation.html?raw';
 import images from '../../content/images.html?raw';
 import movies from '../../content/movies.html?raw';
 import { rewriteImportedHtml, workExperienceHref } from '../../utils/paths';
+import { chunkPortfolioHtml } from '../../utils/wpPortfolio';
 
 const jumpLinks = [
   { id: 'custom' as const, label: 'custom', hint: 'AR / VR / film' },
@@ -12,52 +15,95 @@ const jumpLinks = [
 ];
 
 const sections = [
-  { id: 'custom' as const, label: 'custom', html: rewriteImportedHtml(presentation) },
-  { id: 'images' as const, label: 'images', html: rewriteImportedHtml(images) },
-  { id: 'animation' as const, label: 'animation', html: rewriteImportedHtml(movies) },
+  {
+    id: 'custom' as const,
+    label: 'custom',
+    kicker: 'AR · VR · branded film',
+    html: chunkPortfolioHtml(rewriteImportedHtml(presentation), { stripLegacyHero: true }),
+    layout: 'layout-a',
+  },
+  {
+    id: 'images' as const,
+    label: 'images',
+    kicker: 'Laser scan · heritage · real-time',
+    html: chunkPortfolioHtml(rewriteImportedHtml(images)),
+    layout: 'layout-b',
+  },
+  {
+    id: 'animation' as const,
+    label: 'animation',
+    kicker: 'Rigging · cinematics · games',
+    html: chunkPortfolioHtml(rewriteImportedHtml(movies)),
+    layout: 'layout-c',
+  },
 ];
 ---
 
 <BaseLayout title="work experience" current="work-experience">
-  <header class="work-page-head">
-    <p class="work-page-kicker">Portfolio</p>
-    <h1 class="work-page-title">work experience</h1>
-    <p class="work-page-lead">
-      Commercial AR/VR, heritage laser-scan modeling, and real-time animation — all project media and
-      embeds from the migrated portfolio.
-    </p>
-    <nav class="work-page-jump" aria-label="Work sections">
-      <ul>
+  <div class="work-page">
+    <a class="skip-link" href="#work-main">Skip to portfolio</a>
+
+    <header class="work-page-hero reveal">
+      <p class="work-page-kicker">Jun Nagaoka · Portfolio</p>
+      <h1 class="work-page-title">work experience</h1>
+      <p class="work-page-lead">
+        AR/VR campaigns, laser-scan heritage work, and real-time animation — migrated project media
+        and credits, presented as one editorial scroll.
+      </p>
+    </header>
+
+    <div class="work-page-shell">
+      <WorkSectionRail sections={jumpLinks} />
+
+      <div class="work-page-main" id="work-main">
+        <nav class="work-page-jump reveal" aria-label="Work sections">
+          <ul>
+            {
+              jumpLinks.map((link, i) => (
+                <li>
+                  <a href={workExperienceHref(link.id)} data-section-link={link.id}>
+                    <span class="work-page-jump-num" aria-hidden="true">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span class="work-page-jump-label">{link.label}</span>
+                    <span class="work-page-jump-hint">{link.hint}</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
         {
-          jumpLinks.map((link, i) => (
-            <li>
-              <a href={workExperienceHref(link.id)}>
-                <span class="work-page-jump-num" aria-hidden="true">
-                  {String(i + 1).padStart(2, '0')}
+          sections.map((section, index) => (
+            <section
+              id={section.id}
+              class={`work-page-section work-page-section--${section.layout}`}
+              aria-labelledby={`${section.id}-heading`}
+            >
+              <header class="work-page-section-head reveal">
+                <span class="work-page-section-num" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
                 </span>
-                <span class="work-page-jump-label">{link.label}</span>
-                <span class="work-page-jump-hint">{link.hint}</span>
-              </a>
-            </li>
+                <div class="work-page-section-titles">
+                  <p class="work-page-section-kicker">{section.kicker}</p>
+                  <h2 id={`${section.id}-heading`} class="work-page-section-title">
+                    {section.label}
+                  </h2>
+                </div>
+                <a class="work-page-section-top" href="#work-main">
+                  Top
+                </a>
+              </header>
+              <div class={`work-portfolio wp-content wp-content--${section.id}`} set:html={section.html} />
+            </section>
           ))
         }
-      </ul>
-    </nav>
-  </header>
+      </div>
+    </div>
 
-  {
-    sections.map((section, index) => (
-      <section id={section.id} class="work-page-section" aria-labelledby={`${section.id}-heading`}>
-        <h2 id={`${section.id}-heading`} class="work-page-section-title">
-          <span class="work-page-section-num" aria-hidden="true">
-            {String(index + 1).padStart(2, '0')}
-          </span>
-          {section.label}
-        </h2>
-        <div class="wp-content" set:html={section.html} />
-      </section>
-    ))
-  }
+    <WorkExperienceMotion />
+  </div>
 </BaseLayout>
 
 <style is:global>

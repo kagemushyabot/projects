@@ -1,12 +1,13 @@
 :root {
-  --bg: #050506;
-  --bg-elevated: #101014;
-  --text: #f6f4f1;
-  --text-secondary: #c9c5be;
-  --text-muted: #9d9890;
-  --border: #35353c;
-  --border-strong: #4a4a54;
-  --accent: #e4b27a;
+  --bg: #060607;
+  --bg-elevated: #101116;
+  --text: #f2f0ec;
+  --text-secondary: #c4c0b8;
+  --text-muted: #949088;
+  --border: #2f3036;
+  --border-strong: #45474f;
+  --accent: #c9a66b;
+  --accent-dim: #8f7350;
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --font-display: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
 }

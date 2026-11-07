@@ -1,0 +1,42 @@
+---
+import { workExperienceHref, type WorkExperienceSection } from '../utils/paths';
+
+export interface WorkSectionLink {
+  id: WorkExperienceSection;
+  label: string;
+  hint: string;
+}
+
+interface Props {
+  sections: WorkSectionLink[];
+}
+
+const { sections } = Astro.props;
+---
+
+<aside class="work-page-rail" aria-label="Section navigation">
+  <nav class="work-page-rail-nav">
+    <p class="work-page-rail-label">Sections</p>
+    <ol>
+      {
+        sections.map((link, i) => (
+          <li>
+            <a
+              class="work-page-rail-link"
+              href={workExperienceHref(link.id)}
+              data-section-link={link.id}
+            >
+              <span class="work-page-rail-num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="work-page-rail-text">
+                <span class="work-page-rail-title">{link.label}</span>
+                <span class="work-page-rail-hint">{link.hint}</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+</aside>
