@@ -69,33 +69,40 @@ await page.screenshot({ path: `${outDir}/work-exp-intro-top.png`, fullPage: fals
 await page.screenshot({ path: `${outDir}/work-exp-gallery-compact.png` });
 
 if (await page.$('#water-is-life-hidden-dangers-vr-campaign')) {
-  await page.evaluate(() => {
-    document.getElementById('water-is-life-hidden-dangers-vr-campaign')?.scrollIntoView({ block: 'start', behavior: 'instant' });
-  });
-  await new Promise((r) => setTimeout(r, 400));
-  await page.evaluate(() => {
-    document.getElementById('on-ice')?.scrollIntoView({ block: 'end', behavior: 'instant' });
-  });
-  await new Promise((r) => setTimeout(r, 350));
   const clip = await page.evaluate(() => {
     const water = document.getElementById('water-is-life-hidden-dangers-vr-campaign');
     const onIce = document.getElementById('on-ice');
     const onIceHero = onIce?.querySelector('.gallery-spotlight-film__hero');
-    const start = (water?.getBoundingClientRect().top ?? 0) + window.scrollY;
-    const endBottom =
-      (onIceHero?.getBoundingClientRect().bottom ?? onIce?.getBoundingClientRect().bottom ?? start + 900) +
-      window.scrollY;
     const pad = 12;
+    const docTop = (el) => {
+      if (!el) return 0;
+      const r = el.getBoundingClientRect();
+      return r.top + window.scrollY;
+    };
+    const docBottom = (el) => {
+      if (!el) return 0;
+      const r = el.getBoundingClientRect();
+      return r.bottom + window.scrollY;
+    };
+    const start = docTop(water);
+    const endBottom = docBottom(onIceHero) || docBottom(onIce) || start + 900;
+    document.getElementById('on-ice')?.scrollIntoView({ block: 'end', behavior: 'instant' });
     return {
-      x: 0,
-      y: Math.max(0, start - pad),
-      width: 1440,
-      height: Math.min(2400, Math.max(400, endBottom - start + pad * 2)),
+      startY: Math.max(0, start - pad),
+      endBottom,
+      pad,
     };
   });
+  await new Promise((r) => setTimeout(r, 450));
+  const clipRect = {
+    x: 0,
+    y: clip.startY,
+    width: 1440,
+    height: Math.min(2400, Math.max(400, clip.endBottom - clip.startY + clip.pad * 2)),
+  };
   await page.screenshot({
     path: `${outDir}/work-exp-gallery-pearl-group.png`,
-    clip,
+    clip: clipRect,
   });
 }
 
