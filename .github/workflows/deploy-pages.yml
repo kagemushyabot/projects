@@ -20,6 +20,8 @@ jobs:
     env:
       # Flip via repo variable PUBLIC_SITE_LAUNCH or Settings → Secrets and variables → Actions.
       PUBLIC_SITE_LAUNCH: ${{ vars.PUBLIC_SITE_LAUNCH || 'false' }}
+      # Project site base path (kagemushyabot.github.io/projects/).
+      PUBLIC_BASE_PATH: ${{ vars.PUBLIC_BASE_PATH || 'projects' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5

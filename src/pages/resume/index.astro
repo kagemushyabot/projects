@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../utils/paths';
 ---
 
 <BaseLayout title="resume" current="resume">
@@ -12,7 +13,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     </p>
   </div>
 
-  <a class="resume-download" href="/assets/Jun_Nagaoka_Resume_2027_v8.pdf" download>
+  <a class="resume-download" href={withBase('/assets/Jun_Nagaoka_Resume_2027_v8.pdf')} download>
     Download PDF (2027)
   </a>
 

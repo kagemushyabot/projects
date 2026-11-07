@@ -1,0 +1,18 @@
+---
+interface Props {
+  summary: string;
+}
+
+const { summary } = Astro.props;
+---
+
+<section class="home-hero" data-parallax-root>
+  <h1 class="home-type">
+    <span class="line-jun home-stagger" style="--stagger: 0">JUN</span>
+    <span class="line-nagaoka home-stagger" style="--stagger: 1">NAGAOKA</span>
+  </h1>
+  <p class="home-role home-stagger" style="--stagger: 2">
+    Lead / Senior 3D Artist · 3D Generalist · Technical Artist
+  </p>
+  <p class="home-summary home-stagger" style="--stagger: 3">{summary}</p>
+</section>
