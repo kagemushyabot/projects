@@ -14,7 +14,14 @@ function thumbSrc(youtubeId: string) {
   <ul class="gallery-grid" role="list">
     {
       projects.map((project, index) => {
-        const maxImages = project.layout === 'feature' ? 14 : project.layout === 'wide' ? 10 : 8;
+        const maxImages =
+          project.layout === 'feature' || project.layout === 'spotlight-peer'
+            ? 14
+            : project.layout === 'wide'
+              ? 10
+              : project.layout === 'spotlight-lead'
+                ? 1
+                : 8;
         const visibleImages = project.images.slice(0, maxImages);
         const extraImages = project.images.length - visibleImages.length;
         return (

@@ -22,7 +22,7 @@ export interface GalleryProject {
   images: GalleryImage[];
   videos: GalleryVideo[];
   sources: PortfolioSource[];
-  layout: 'compact' | 'wide' | 'tall' | 'feature';
+  layout: 'compact' | 'wide' | 'tall' | 'feature' | 'spotlight-lead' | 'spotlight-peer';
   mergedFrom: string[];
 }
 
@@ -106,16 +106,96 @@ function splitChunks(html: string, stripHero: boolean): string[] {
       '',
     );
   }
-  return cleaned
+  const chunks = cleaned
     .split(/(?:<hr\s*\/?>\s*){2,}/i)
     .map((p) => p.trim())
     .filter(Boolean);
+  return chunks.flatMap((chunk) => expandSpotlightMoviesChunk(chunk));
+}
+
+const SPOTLIGHT_COMPOUND_IMAGES = ['image1.jpeg', 'image3.jpeg', 'image4.jpeg'] as const;
+
+function imageBasename(src: string): string {
+  return (src.split('/').pop() || src).split('?')[0];
+}
+
+function extractParagraphContaining(html: string, needle: string): string {
+  const idx = html.indexOf(needle);
+  if (idx === -1) return '';
+  const start = html.lastIndexOf('<p', idx);
+  const end = html.indexOf('</p>', idx);
+  if (start === -1 || end === -1) return '';
+  return html.slice(start, end + 4);
+}
+
+function extractYoutubeParagraph(html: string, youtubeId: string): string {
+  const marker = `embed/${youtubeId}`;
+  const idx = html.indexOf(marker);
+  if (idx === -1) return '';
+  const start = html.lastIndexOf('<p', idx);
+  const end = html.indexOf('</p>', idx);
+  if (start === -1 || end === -1) return '';
+  return html.slice(start, end + 4);
+}
+
+/** `movies.html` opens with a single chunk bundling Spotlight + PEARL + ON ICE without h3 titles. */
+function expandSpotlightMoviesChunk(chunk: string): string[] {
+  const basenames = new Set(
+    [...chunk.matchAll(/\/assets\/wp-import\/([^"'?#\s]+)/gi)].map((m) => m[1].split('?')[0]),
+  );
+  const isCompound = SPOTLIGHT_COMPOUND_IMAGES.every((name) => basenames.has(name));
+  if (!isCompound || /<h3[^>]*>[\s\S]*PEARL/i.test(chunk)) {
+    return [chunk];
+  }
+
+  const creditBlock = chunk.match(
+    /<h4[\s\S]*?evileyepictures\.com[\s\S]*?<\/h4>/i,
+  )?.[0];
+
+  const spotlight = [
+    '<h3 style="text-align:center;">Google Spotlight Stories</h3>',
+    extractParagraphContaining(chunk, 'image1.jpeg'),
+    extractParagraphContaining(chunk, '<strong>Worked as TD generalist</strong>'),
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const pearl = [
+    '<h3 style="text-align:center;"><span style="color:#ffcc00;">PEARL</span></h3>',
+    extractParagraphContaining(chunk, 'image3.jpeg'),
+    extractYoutubeParagraph(chunk, 'JrkslAhyOVc'),
+    '<p style="text-align:center;"><strong>Worked as TD generalist</strong></p>',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const onIce = [
+    '<h3 style="text-align:center;"><span style="color:#ffcc00;"><strong>ON ICE</strong></span></h3>',
+    extractParagraphContaining(chunk, 'image4.jpeg'),
+    extractYoutubeParagraph(chunk, '0cYI8AXkC2I'),
+    creditBlock ?? '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  return [spotlight, pearl, onIce].map((c) => c.trim()).filter((c) => c.length > 40);
+}
+
+function extractTitleFromHtml(html: string): string {
+  for (const m of html.matchAll(/<h3[^>]*>([\s\S]*?)<\/h3>/gi)) {
+    const text = stripTags(m[1]);
+    if (text.length > 3) return text;
+  }
+  for (const m of html.matchAll(/<h4[^>]*>([\s\S]*?)<\/h4>/gi)) {
+    const text = stripTags(m[1]);
+    if (text.length > 8 && !/iframe/i.test(m[0])) return text;
+  }
+  const fallback = stripTags(html).slice(0, 80);
+  return fallback || 'Untitled project';
 }
 
 function parseChunk(html: string, source: PortfolioSource): Omit<GalleryProject, 'id' | 'layout' | 'mergedFrom'> & { keys: string[] } {
-  const titleMatch = html.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
-  const titleRaw = titleMatch ? stripTags(titleMatch[1]) : stripTags(html).slice(0, 80);
-  const title = titleRaw || 'Untitled project';
+  const title = extractTitleFromHtml(html);
 
   const creditMatch = html.match(/<h4[^>]*>[\s\S]*?<a[^>]+>([^<]+)<\/a>/i);
   const creditAlt = html.match(/<h4[^>]*>([^<]{3,120})<\/h4>/i);
@@ -197,6 +277,11 @@ function mergeProjects(a: GalleryProject, b: GalleryProject, mergedKey: string):
   };
 }
 
+function isSpotlightCompoundProject(p: GalleryProject): boolean {
+  const names = new Set(p.images.map((i) => imageBasename(i.src)));
+  return SPOTLIGHT_COMPOUND_IMAGES.every((name) => names.has(name));
+}
+
 function shouldMerge(a: GalleryProject, b: GalleryProject): string | null {
   const aKeys = new Set<string>();
   const bKeys = new Set<string>();
@@ -205,15 +290,87 @@ function shouldMerge(a: GalleryProject, b: GalleryProject): string | null {
   const aTitle = normalizeTitle(a.title);
   const bTitle = normalizeTitle(b.title);
   if (aTitle && aTitle === bTitle) return `title:${aTitle}`;
+  const distinctSpotlight =
+    new Set([aTitle, bTitle]).has('pearl') &&
+    new Set([aTitle, bTitle]).has('on ice');
+  if (distinctSpotlight) return null;
   for (const k of aKeys) {
     if (bKeys.has(k)) return k;
   }
+  if (isSpotlightCompoundProject(a) || isSpotlightCompoundProject(b)) {
+    if (aTitle !== bTitle && !(aTitle === 'pearl' || bTitle === 'pearl')) {
+      return null;
+    }
+  }
   if (aTitle.length > 8 && bTitle.length > 8 && (aTitle.includes(bTitle) || bTitle.includes(aTitle))) {
-    const aImg = new Set(a.images.map((i) => i.src.split('/').pop()));
-    const shared = b.images.some((i) => aImg.has(i.src.split('/').pop()));
+    const aImg = new Set(a.images.map((i) => imageBasename(i.src)));
+    const shared = b.images.some((i) => aImg.has(imageBasename(i.src)));
     if (shared) return `title-sub:${aTitle}|${bTitle}`;
   }
   return null;
+}
+
+const SPOTLIGHT_CLUSTER_IDS = {
+  water: 'water-is-life-hidden-dangers-vr-campaign',
+  lead: 'google-spotlight-stories',
+  pearl: 'pearl',
+  onIce: 'on-ice',
+} as const;
+
+function canonicalSpotlightIds(projects: GalleryProject[]): void {
+  for (const p of projects) {
+    const t = normalizeTitle(p.title);
+    if (t === 'google spotlight stories') p.id = SPOTLIGHT_CLUSTER_IDS.lead;
+    if (t === 'pearl') p.id = SPOTLIGHT_CLUSTER_IDS.pearl;
+    if (t === 'on ice') p.id = SPOTLIGHT_CLUSTER_IDS.onIce;
+    if (t.includes('mission to the deep')) p.id = 'mission-to-the-deep-exhibit';
+  }
+}
+
+function curateSpotlightCluster(projects: GalleryProject[]): GalleryProject[] {
+  canonicalSpotlightIds(projects);
+  const byId = new Map(projects.map((p) => [p.id, p]));
+
+  const pearl = byId.get(SPOTLIGHT_CLUSTER_IDS.pearl);
+  if (pearl) {
+    pearl.title = 'PEARL';
+    pearl.layout = 'spotlight-peer';
+  }
+  const onIce = byId.get(SPOTLIGHT_CLUSTER_IDS.onIce);
+  if (onIce) {
+    onIce.title = 'ON ICE';
+    onIce.layout = 'spotlight-peer';
+  }
+  const lead = byId.get(SPOTLIGHT_CLUSTER_IDS.lead);
+  if (lead) {
+    lead.layout = 'spotlight-lead';
+    lead.images = lead.images.filter((i) => imageBasename(i.src) === 'image1.jpeg');
+  }
+
+  const clusterIds = [
+    SPOTLIGHT_CLUSTER_IDS.lead,
+    SPOTLIGHT_CLUSTER_IDS.pearl,
+    SPOTLIGHT_CLUSTER_IDS.onIce,
+  ];
+  const monterey = projects.find(
+    (p) =>
+      p.id === 'mission-to-the-deep-exhibit' ||
+      p.images.some((i) => imageBasename(i.src) === 'mba_color_2line.jpg'),
+  );
+
+  const rest = projects.filter(
+    (p) => !clusterIds.includes(p.id as (typeof clusterIds)[number]) && p !== monterey,
+  );
+
+  const waterAnchor = rest.findIndex((p) => p.id === SPOTLIGHT_CLUSTER_IDS.water);
+  const cluster = clusterIds.map((id) => byId.get(id)).filter((p): p is GalleryProject => Boolean(p));
+
+  if (!cluster.length) return projects;
+
+  const head = waterAnchor >= 0 ? rest.slice(0, waterAnchor + 1) : rest;
+  const tail = waterAnchor >= 0 ? rest.slice(waterAnchor + 1) : [];
+  const afterCluster = monterey ? [monterey, ...tail] : tail;
+  return [...head, ...cluster, ...afterCluster];
 }
 
 let galleryCache: { projects: GalleryProject[]; dedupeReport: DedupeReportEntry[] } | null = null;
@@ -268,11 +425,20 @@ export function buildPortfolioGallery(): { projects: GalleryProject[]; dedupeRep
 
   projects = projects
     .filter((p) => !(p.images.length === 0 && p.videos.length === 0))
-    .filter((p) => !/^(animation|resume|miscellaneous)$/i.test(p.title.trim()))
-    .map((p, i) => ({
+    .filter((p) => !/^(animation|resume|miscellaneous)$/i.test(p.title.trim()));
+
+  projects = curateSpotlightCluster(
+    projects.map((p, i) => ({
       ...p,
-      layout: LAYOUT_CYCLE[i % LAYOUT_CYCLE.length],
-    }));
+      layout: p.layout === 'compact' ? LAYOUT_CYCLE[i % LAYOUT_CYCLE.length] : p.layout,
+    })),
+  );
+
+  projects = projects.map((p, i) => {
+    if (p.layout === 'spotlight-lead' || p.layout === 'spotlight-peer') return p;
+    if (p.id === SPOTLIGHT_CLUSTER_IDS.water) return { ...p, layout: 'feature' as const };
+    return { ...p, layout: LAYOUT_CYCLE[i % LAYOUT_CYCLE.length] };
+  });
 
   galleryCache = { projects, dedupeReport };
   return galleryCache;
