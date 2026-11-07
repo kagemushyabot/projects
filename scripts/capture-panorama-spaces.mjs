@@ -37,11 +37,15 @@ async function shotCard(id, path) {
     if (!el) return null;
     const r = el.getBoundingClientRect();
     if (r.height < 80) return null;
-    return { x: r.x, y: r.y, width: r.width, height: r.height };
+    return {
+      x: r.x + window.scrollX,
+      y: r.y + window.scrollY,
+      width: r.width,
+      height: r.height,
+    };
   }, id);
   if (!box) return false;
   const buf = await page.screenshot({
-    captureBeyondViewport: true,
     clip: {
       x: Math.max(0, box.x),
       y: Math.max(0, box.y),
@@ -104,19 +108,26 @@ const mobileBox = await mobile.evaluate(() => {
   let top = Infinity;
   let bottom = 0;
   let width = 0;
+  let left = 0;
   for (const id of ids) {
     const r = document.getElementById(id)?.getBoundingClientRect();
     if (!r) continue;
     top = Math.min(top, r.y);
     bottom = Math.max(bottom, r.y + r.height);
     width = Math.max(width, r.width);
+    left = Math.min(left === 0 ? r.x : left, r.x);
   }
-  return { x: 0, y: Math.max(0, top - 8), width, height: bottom - top + 16 };
+  const pad = 8;
+  return {
+    x: Math.max(0, left - pad) + window.scrollX,
+    y: Math.max(0, top - pad) + window.scrollY,
+    width: width + pad * 2,
+    height: bottom - top + pad * 2,
+  };
 });
 await mobile.screenshot({
   path: `${outDir}/work-exp-panorama-spaces-mobile.png`,
   clip: mobileBox,
-  captureBeyondViewport: true,
 });
 
 const sizes = await page.evaluate(() => {
