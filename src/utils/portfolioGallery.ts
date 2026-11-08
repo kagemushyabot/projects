@@ -58,6 +58,7 @@ export const PAIR_HERO_FEATURE_IDS = new Set([
 
 export const MISSION_PANEL_ID = 'mission-to-the-deep-exhibit';
 export const INSIGHT_PANEL_ID = 'insight-digital-emeryville';
+export const PREPRODUCTION_PANEL_ID = 'preproduction-of-the-opening-ceremony-projection';
 
 /** Full-width gallery rows (desktop). */
 export const SOLO_ROW_PANEL_IDS = [

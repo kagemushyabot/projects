@@ -3,6 +3,7 @@ import {
   buildPortfolioGallery,
   EVIL_EYE_PANEL_ID,
   MISSION_PANEL_ID,
+  PREPRODUCTION_PANEL_ID,
   PAIR_HERO_FEATURE_IDS,
   GALLERY_ROW_PAIR_IDS,
   SOLO_ROW_PANEL_IDS,
@@ -35,6 +36,7 @@ function thumbSrc(youtubeId: string) {
         const isSoloRow = SOLO_ROW_SET.has(project.id);
         const isRowPair = GALLERY_ROW_PAIR_IDS.has(project.id);
         const isMissionHero = project.id === MISSION_PANEL_ID;
+        const isPreproductionGrid = project.id === PREPRODUCTION_PANEL_ID;
 
         return (
         <li
@@ -180,6 +182,7 @@ function thumbSrc(youtubeId: string) {
                     isMixed && 'gallery-card-media--mixed',
                     isSoloRow && 'gallery-card-media--solo-row',
                     isMissionHero && 'gallery-card-media--mission-hero',
+                    isPreproductionGrid && 'gallery-card-media--preproduction-grid',
                   ]}
                   data-media-grid
                   data-mixed-panel={isMixed ? '' : undefined}
