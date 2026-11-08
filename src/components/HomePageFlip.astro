@@ -13,29 +13,36 @@ const initial = items[0];
 const initialSrc = initial ? imgSrc(initial.src) : '';
 ---
 
-<div class="home-flip" data-home-flip>
+<div class="home-flip" data-home-flip data-page-flip>
   <div class="home-flip-stage" data-flip-stage>
     <div class="home-flip-viewport">
-      <div class="home-flip-sheet" data-flip-sheet>
-        <div class="home-flip-face home-flip-face--front" data-flip-face="front">
+      <div class="home-flip-stack" data-flip-stack>
+        <div class="home-flip-under" data-flip-under aria-hidden="true">
           <div class="home-flip-art">
-            {
-              initial && (
-                <img
-                  data-flip-img-front
-                  src={initialSrc}
-                  alt=""
-                  decoding="async"
-                  width="640"
-                  height="400"
-                />
-              )
-            }
+            <img data-flip-img-under alt="" decoding="async" width="640" height="400" />
           </div>
         </div>
-        <div class="home-flip-face home-flip-face--back" data-flip-face="back" aria-hidden="true">
-          <div class="home-flip-art">
-            <img data-flip-img-back alt="" decoding="async" width="640" height="400" />
+        <div class="home-flip-sheet" data-flip-sheet data-axis="y">
+          <div class="home-flip-face home-flip-face--front" data-flip-face="front">
+            <div class="home-flip-art">
+              {
+                initial && (
+                  <img
+                    data-flip-img-front
+                    src={initialSrc}
+                    alt=""
+                    decoding="async"
+                    width="640"
+                    height="400"
+                  />
+                )
+              }
+            </div>
+          </div>
+          <div class="home-flip-face home-flip-face--back" data-flip-face="back" aria-hidden="true">
+            <div class="home-flip-art">
+              <img data-flip-img-back alt="" decoding="async" width="640" height="400" />
+            </div>
           </div>
         </div>
       </div>
@@ -70,26 +77,38 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
 
 <script is:inline define:vars={{ flipItems: items.map((i) => ({ ...i, src: imgSrc(i.src) })) }}>
   (function () {
-    var root = document.querySelector('[data-home-flip]');
+    var root = document.querySelector('[data-page-flip]');
     var sheet = document.querySelector('[data-flip-sheet]');
+    var under = document.querySelector('[data-flip-under]');
     var imgFront = document.querySelector('[data-flip-img-front]');
     var imgBack = document.querySelector('[data-flip-img-back]');
+    var imgUnder = document.querySelector('[data-flip-img-under]');
     var titleEl = document.querySelector('[data-flip-title]');
     var pauseBtn = document.querySelector('[data-flip-pause]');
     var prevBtn = document.querySelector('[data-flip-prev]');
     var nextBtn = document.querySelector('[data-flip-next]');
-    if (!root || !sheet || !imgFront || !imgBack || !titleEl || !flipItems.length) return;
+    if (!root || !sheet || !under || !imgFront || !imgBack || !imgUnder || !titleEl || !flipItems.length) return;
 
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var FLIP_MS = 820;
-    var AUTO_MS = 3400;
+    var AUTO_MS = 3200;
     var paused = false;
     var flipping = false;
     var timer = 0;
+    var flipIndex = 0;
+    var lastFlipMs = 0;
     var order = flipItems.map(function (_, i) {
       return i;
     });
     var seqPtr = 0;
+
+    var FLIP_MODES = [
+      { id: 'right-y', axis: 'y', origin: '100% 42%', end: 'rotateY(178deg) rotateX(6deg)', persp: '78% 48%' },
+      { id: 'left-y', axis: 'y', origin: '0% 55%', end: 'rotateY(-178deg) rotateX(4deg)', persp: '22% 52%' },
+      { id: 'top-x', axis: 'x', origin: '48% 0%', end: 'rotateX(-175deg) rotateY(-8deg)', persp: '50% 18%' },
+      { id: 'bottom-x', axis: 'x', origin: '52% 100%', end: 'rotateX(175deg) rotateY(6deg)', persp: '50% 88%' },
+      { id: 'diag-tr', axis: 'y', origin: '100% 8%', end: 'rotateY(168deg) rotateX(-20deg) rotateZ(2deg)', persp: '92% 22%' },
+      { id: 'diag-bl', axis: 'y', origin: '4% 92%', end: 'rotateY(-168deg) rotateX(16deg)', persp: '8% 76%' },
+    ];
 
     function shuffle(arr) {
       for (var i = arr.length - 1; i > 0; i--) {
@@ -103,7 +122,7 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
     shuffle(order);
 
     function projectAt(seqIndex) {
-      return flipItems[order[seqIndex % order.length]];
+      return flipItems[order[((seqIndex % order.length) + order.length) % order.length]];
     }
 
     function preloadAll() {
@@ -120,15 +139,32 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
       img.alt = project.title;
     }
 
+    function pickMode(direction) {
+      if (flipIndex === 0) {
+        flipIndex += 1;
+        return FLIP_MODES[0];
+      }
+      var pool = FLIP_MODES.slice(1);
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function restingLayout() {
+      under.classList.remove('home-flip-under--active');
+      sheet.classList.remove('home-flip-sheet--turned', 'home-flip-sheet--animating');
+      sheet.style.transform = 'none';
+      sheet.style.transitionDuration = '';
+    }
+
     function applyResting(seqIndex) {
       var current = projectAt(seqIndex);
       setFace(imgFront, current);
+      setFace(imgUnder, current);
       titleEl.textContent = current.title;
-      sheet.classList.remove('home-flip-sheet--turned');
-      sheet.dataset.flipAngle = '0';
+      restingLayout();
       sheet.dataset.resting = 'true';
       root.dataset.currentProject = current.projectId;
       root.dataset.currentTitle = current.title;
+      root.dataset.stageCovered = 'single';
     }
 
     function prepareBack(seqIndex) {
@@ -139,34 +175,65 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
     applyResting(seqPtr);
     prepareBack(seqPtr + 1);
 
-    function snapAfterTurn(nextSeq) {
-      seqPtr = nextSeq % order.length;
+    function snapAfterTurn(nextSeq, flipMs) {
+      seqPtr = ((nextSeq % order.length) + order.length) % order.length;
       var current = projectAt(seqPtr);
       setFace(imgFront, current);
+      setFace(imgUnder, current);
       titleEl.textContent = current.title;
-      sheet.classList.remove('home-flip-sheet--turned', 'home-flip-sheet--animating');
-      sheet.dataset.flipAngle = '0';
+      sheet.style.transition = 'none';
+      restingLayout();
+      requestAnimationFrame(function () {
+        sheet.style.transition = '';
+      });
       sheet.dataset.resting = 'true';
       root.dataset.currentProject = current.projectId;
       root.dataset.currentTitle = current.title;
+      root.dataset.lastFlipMs = String(flipMs);
       prepareBack(seqPtr + 1);
       flipping = false;
+      root.dataset.stageCovered = 'single';
     }
 
     function runFlip(direction) {
       if (flipping) return;
       flipping = true;
       sheet.dataset.resting = 'false';
-      var nextSeq = seqPtr + (direction < 0 ? order.length - 1 : 1);
-      prepareBack(nextSeq);
+      var nextSeq = seqPtr + (direction < 0 ? -1 : 1);
+      var outgoing = projectAt(seqPtr);
+      var incoming = projectAt(nextSeq);
+      var mode = pickMode(direction);
+      var flipMs = 200 + Math.floor(Math.random() * 151);
+      lastFlipMs = flipMs;
+
+      setFace(imgFront, outgoing);
+      setFace(imgUnder, outgoing);
+      setFace(imgBack, incoming);
+      under.classList.add('home-flip-under--active');
+
+      sheet.dataset.axis = mode.axis;
+      sheet.dataset.flipMode = mode.id;
+      sheet.style.transformOrigin = mode.origin;
+      sheet.style.setProperty('--flip-ms', String(flipMs));
+      root.dataset.lastFlipMode = mode.id;
+      root.dataset.stageCovered = 'under+sheet';
+
+      var viewport = root.querySelector('.home-flip-viewport');
+      if (viewport && mode.persp) viewport.style.perspectiveOrigin = mode.persp;
+
       sheet.classList.add('home-flip-sheet--animating');
-      sheet.dataset.flipAngle = '180';
+      sheet.style.transform = 'none';
       requestAnimationFrame(function () {
-        sheet.classList.add('home-flip-sheet--turned');
+        requestAnimationFrame(function () {
+          sheet.classList.add('home-flip-sheet--turned');
+          sheet.style.transform = mode.end;
+        });
       });
+
       window.setTimeout(function () {
-        snapAfterTurn(nextSeq);
-      }, FLIP_MS);
+        snapAfterTurn(nextSeq, flipMs);
+        if (viewport) viewport.style.perspectiveOrigin = '';
+      }, flipMs + 32);
     }
 
     function scheduleAuto() {
@@ -216,6 +283,9 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
 
     root.runFlipForTest = function (dir) {
       runFlip(dir || 1);
+    };
+    root.getLastFlipMs = function () {
+      return lastFlipMs;
     };
   })();
 </script>
