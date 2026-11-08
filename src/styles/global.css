@@ -338,6 +338,14 @@ body.is-resume .resume-job h3 strong {
   color: var(--text);
 }
 
+/* Evil Eye film credits — Spotlight title emphasis (Pearl, On Ice only) */
+body.is-resume .resume-section li > strong {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #d4b483;
+}
+
 body.is-resume main a {
   color: #e4b872;
   text-decoration: underline;
@@ -381,6 +389,10 @@ body.is-resume main a:hover {
 
   body.is-resume main a {
     color: #0b4f8a !important;
+  }
+
+  body.is-resume .resume-section li > strong {
+    color: #6b4528 !important;
   }
 
   .site-header,

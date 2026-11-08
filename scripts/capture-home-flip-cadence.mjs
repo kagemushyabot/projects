@@ -20,6 +20,7 @@ const browser = await puppeteer.launch({
 });
 
 const page = await browser.newPage();
+await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
 
 async function shotFlip(filename) {
   const el = await page.$('[data-page-flip]');
@@ -42,6 +43,11 @@ await page.goto(baseUrl, { waitUntil: 'networkidle2', timeout: 90000 });
 await page.evaluate(() => document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible')));
 await page.evaluate(() =>
   document.querySelector('[data-page-flip]')?.scrollIntoView({ block: 'center', behavior: 'instant' }),
+);
+
+await page.waitForFunction(
+  () => document.querySelector('[data-page-flip]')?.dataset?.flipDurationMs === '300',
+  { timeout: 15000 },
 );
 
 const config = await page.evaluate(() => ({
