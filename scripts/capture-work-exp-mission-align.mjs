@@ -57,10 +57,7 @@ async function measureAlign(panelId) {
 
 async function scrollMissionRef() {
   await page.evaluate((missionId) => {
-    const el = document.getElementById(missionId);
-    if (!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - 28;
-    window.scrollTo({ top: Math.max(0, y), left: 0, behavior: 'instant' });
+    document.getElementById(missionId)?.scrollIntoView({ block: 'start', behavior: 'instant' });
   }, MISSION_ID);
   await page.evaluate(async (ids) => {
     for (const id of ids) {
@@ -107,12 +104,14 @@ async function screenshotMissionRefRegion() {
   const valid = boxes.filter(Boolean);
   if (valid.length < 2) throw new Error('missing mission or reference panel for screenshot');
 
-  const top = Math.max(0, Math.floor(Math.min(...valid.map((b) => b.y)) - 10));
-  const bottom = Math.ceil(Math.max(...valid.map((b) => b.y + b.height)) + 12);
+  const missionBox = valid.find((b) => b.id === MISSION_ID);
+  const refBox = valid.find((b) => b.id === REF_ID);
+  if (!missionBox || !refBox) throw new Error('missing mission or reference box');
+  const top = Math.max(0, Math.floor(missionBox.y - 6));
+  const bottom = Math.ceil(refBox.y + refBox.height + 10);
   const height = Math.min(900 - top, Math.max(180, bottom - top));
-  const firstTop = valid[0].y;
-  if (firstTop > 200) {
-    throw new Error(`Mission/ref not in expected viewport band (firstTop=${firstTop})`);
+  if (missionBox.y > 220) {
+    throw new Error(`Mission not in expected viewport band (missionTop=${missionBox.y})`);
   }
 
   const shotPath = path.join(outDir, 'work-exp-mission-left-align-desktop.png');
@@ -123,6 +122,13 @@ async function screenshotMissionRefRegion() {
 
   return { clip: { x: 0, y: top, width: 1440, height }, panels: valid };
 }
+
+const tacticInView = await page.evaluate(() => {
+  const tactic = document.querySelector('.work-intro-block--tactic');
+  if (!tactic) return false;
+  const r = tactic.getBoundingClientRect();
+  return r.bottom > 0 && r.top < window.innerHeight;
+});
 
 const screenshot = await screenshotMissionRefRegion();
 
@@ -166,11 +172,13 @@ const metrics = {
     titlesInShot:
       screenshot.panels.every((p) => p.title?.length) &&
       screenshot.panels.some((p) => p.id === MISSION_ID && p.title.toLowerCase().includes('mission')),
+    tacticNotInViewport: !tacticInView,
     pass:
       panelDelta <= leftTolerance &&
       cardDelta <= leftTolerance &&
       mediaDelta <= leftTolerance &&
       stillSizePass &&
+      !tacticInView &&
       screenshot.panels.length >= 2,
   },
 };
