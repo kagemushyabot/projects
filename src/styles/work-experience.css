@@ -245,8 +245,13 @@
     grid-column: span 8;
   }
 
-  .gallery-item--feature:nth-of-type(6n) {
+  .gallery-item--feature:nth-of-type(6n):not(.gallery-item--solo-row):not(.gallery-item--evil-eye) {
     grid-column: 5 / span 8;
+  }
+
+  .gallery-item--solo-row.gallery-item--feature,
+  .gallery-item--solo-row {
+    grid-column: 1 / -1;
   }
 }
 
