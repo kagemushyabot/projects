@@ -81,13 +81,21 @@ for (const { w, h, name } of [
     deviceScaleFactor: name === 'mobile' ? 2 : 1,
   });
   await page.goto(baseUrl, { waitUntil: 'networkidle2', timeout: 90000 });
+  await page.waitForSelector('.resume-accent-name', { timeout: 30000 });
   await page.evaluate(() => {
     const job = [...document.querySelectorAll('.resume-job h3')].find((h) =>
       h.textContent?.includes('Tactic Studio'),
     );
-    job?.closest('.resume-job')?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    job?.closest('.resume-job')?.scrollIntoView({ block: 'center', behavior: 'instant' });
   });
-  await new Promise((r) => setTimeout(r, 300));
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll('.resume-accent-name')].some((node) =>
+        node.textContent?.trim().startsWith('Splattic development'),
+      ),
+    { timeout: 15000 },
+  );
+  await new Promise((r) => setTimeout(r, 400));
   if (name === 'desktop') desktop = await measurePhrase(page);
   const outPath = await cropShot(page, name);
   if (name === 'desktop') {
