@@ -58,7 +58,14 @@ await ul.screenshot({ path: path.join(outDir, `resume-nomination-phrases-${sha}.
 
 const mobile = await browser.newPage();
 await mobile.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
-await mobile.goto(baseUrl, { waitUntil: 'networkidle2' });
+await mobile.goto(baseUrl, { waitUntil: 'networkidle2', timeout: 90000 });
+await mobile.evaluate(() => {
+  document.querySelector('.resume-accent-nomination')?.closest('.resume-job')?.scrollIntoView({
+    block: 'center',
+    behavior: 'instant',
+  });
+});
+await new Promise((r) => setTimeout(r, 300));
 const mobilePhrases = await mobile.evaluate(() =>
   [...document.querySelectorAll('.resume-accent-nomination')].map((el) => {
     const cs = getComputedStyle(el);
@@ -87,10 +94,13 @@ const metrics = {
     sizeOk: phrases.every((p) => p.fontSizePx >= 17.5),
     colorOk: phrases.every((p) => p.color === 'rgb(212, 180, 131)'),
     weightOk: phrases.every((p) => p.fontWeight === '600'),
-    mobileReadable: mobilePhrases.every((p) => p.fontSizePx >= 17.5),
+    mobileReadable:
+      mobilePhrases.length === 2 && mobilePhrases.every((p) => p.fontSizePx >= 17.5),
     pass:
       phrases.length === 2 &&
-      phrases.every((p) => p.fontSizePx >= 17.5 && p.fontWeight === '600' && p.color === 'rgb(212, 180, 131)'),
+      mobilePhrases.length === 2 &&
+      phrases.every((p) => p.fontSizePx >= 17.5 && p.fontWeight === '600' && p.color === 'rgb(212, 180, 131)') &&
+      mobilePhrases.every((p) => p.fontSizePx >= 17.5),
   },
 };
 
