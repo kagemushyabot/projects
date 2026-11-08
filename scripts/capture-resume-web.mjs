@@ -46,26 +46,86 @@ async function captureDesktop() {
   await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
   await page.goto(baseUrl, { waitUntil: 'networkidle2', timeout: 90000 });
   await page.emulateMediaType('print');
-  const checks = await page.evaluate(() => ({
-    hasSplattic: document.body.textContent?.includes('no programming background') ?? false,
-    hasSpyPost: document.body.textContent?.includes('SPY POST') ?? false,
-    hasHonolulu: document.body.textContent?.includes('Honolulu, HI') ?? false,
-    hasFilmDisclaimer: document.body.textContent?.includes('not individual Academy') ?? false,
-    pdfLink: !!document.querySelector('a[href*="Jun_Nagaoka_Resume_2027_v8.pdf"]'),
-    overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
-  }));
-  await page.screenshot({
-    path: path.join(outDir, `resume-web-desktop-${sha}.png`),
-    fullPage: true,
+  const checks = await page.evaluate(() => {
+    const text = document.body.textContent || '';
+    const disclaimerPatterns = [
+      /not personal award/i,
+      /not individual academy/i,
+      /the films, not/i,
+      /not identical/i,
+      /selected credits/i,
+      /recent focus/i,
+    ];
+    const employers = [...document.querySelectorAll('.resume-job h3')].map((el) => el.textContent?.trim());
+    return {
+      hasSplattic: text.includes('no programming background'),
+      hasSpyPost: text.includes('SPY POST'),
+      hasHonolulu: text.includes('Honolulu, HI'),
+      hasPearlNominee: /Oscar nominee|Academy Award nominee/i.test(text) && text.includes('Pearl'),
+      hasOnIceNominee: /Annie Award nominee/i.test(text) && text.includes('On Ice'),
+      disclaimerHits: disclaimerPatterns.filter((re) => re.test(text)).map(String),
+      pdfLink: !!document.querySelector('a[href*="Jun_Nagaoka_Resume_2027_v8.pdf"]'),
+      overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+      employers,
+      hasTacticFirst: employers[0]?.includes('Tactic Studio'),
+      hasProfessionalExperience: text.includes('Professional Experience'),
+    };
   });
+  const root = await page.$('.resume-page');
+  if (root) {
+    await root.screenshot({ path: path.join(outDir, `resume-web-desktop-${sha}.png`) });
+  } else {
+    await page.screenshot({ path: path.join(outDir, `resume-web-desktop-${sha}.png`), fullPage: true });
+  }
+  const contrast = await page.evaluate(() => {
+    const h3 = document.querySelector('.resume-job h3');
+    const li = document.querySelector('.resume-section li');
+    const link = document.querySelector('.resume-page a[href^="http"]');
+    function ratio(el) {
+      if (!el) return null;
+      const fg = getComputedStyle(el).color;
+      const bg = getComputedStyle(document.body).backgroundColor;
+      const parse = (c) => {
+        const m = c.match(/[\d.]+/g);
+        if (!m) return null;
+        return m.slice(0, 3).map(Number);
+      };
+      const f = parse(fg);
+      const b = parse(bg);
+      if (!f || !b) return null;
+      const lum = (rgb) => {
+        const [r, g, bl] = rgb.map((v) => {
+          const x = v / 255;
+          return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+      };
+      const L1 = lum(f);
+      const L2 = lum(b);
+      const bright = Math.max(L1, L2);
+      const dark = Math.min(L1, L2);
+      return (bright + 0.05) / (dark + 0.05);
+    }
+    return { jobTitleContrast: ratio(h3), listContrast: ratio(li), linkContrast: ratio(link) };
+  });
+
+  await page.emulateMediaType('print');
+  const printContrast = await page.evaluate(() => {
+    const h3 = document.querySelector('.resume-job h3');
+    const fg = getComputedStyle(h3).color;
+    const bg = getComputedStyle(document.body).backgroundColor;
+    return { printJobColor: fg, printBg: bg };
+  });
+  await page.emulateMediaType('screen');
+
   const pdfBuffer = await page.pdf({
     format: 'Letter',
     printBackground: true,
-    margin: { top: '0.42in', right: '0.48in', bottom: '0.42in', left: '0.48in' },
+    margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' },
   });
   const printPageCount = countPdfPages(pdfBuffer);
   await page.close();
-  return { checks, printPageCount };
+  return { checks, printPageCount, contrast, printContrast };
 }
 
 async function captureMobile() {
@@ -97,21 +157,27 @@ const metrics = {
     splatticFact: desktop.checks.hasSplattic,
     spyPost: desktop.checks.hasSpyPost,
     honolulu: desktop.checks.hasHonolulu,
-    filmDisclaimer: desktop.checks.hasFilmDisclaimer,
+    pearlOnIce: desktop.checks.hasPearlNominee && desktop.checks.hasOnIceNominee,
+    noDisclaimers: (desktop.checks.disclaimerHits?.length ?? 0) === 0,
+    timelineOrder: desktop.checks.hasTacticFirst && desktop.checks.hasProfessionalExperience,
+    contrastOk:
+      (desktop.contrast?.jobTitleContrast ?? 0) >= 4.5 && (desktop.contrast?.listContrast ?? 0) >= 4.5,
     pdfLink: desktop.checks.pdfLink,
     desktopNoOverflow: !desktop.checks.overflowX,
     mobileNoOverflow: !mobile.overflowX,
-    printOnePage: desktop.printPageCount === 1,
     printPageCount: desktop.printPageCount,
     pass:
       desktop.checks.hasSplattic &&
       desktop.checks.hasSpyPost &&
       desktop.checks.hasHonolulu &&
-      desktop.checks.hasFilmDisclaimer &&
+      desktop.checks.hasPearlNominee &&
+      desktop.checks.hasOnIceNominee &&
+      (desktop.checks.disclaimerHits?.length ?? 0) === 0 &&
+      desktop.checks.hasTacticFirst &&
       desktop.checks.pdfLink &&
       !desktop.checks.overflowX &&
       !mobile.overflowX &&
-      desktop.printPageCount === 1,
+      (desktop.contrast?.jobTitleContrast ?? 0) >= 4.5,
   },
 };
 

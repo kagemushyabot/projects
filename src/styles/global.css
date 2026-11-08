@@ -310,240 +310,82 @@ main {
   margin-bottom: 0.5rem;
 }
 
-/* Condensed resume (web + print) */
+/* Resume page — readable contrast (screen + print) */
 .resume-page {
   max-width: 46rem;
   margin: 0 auto;
 }
 
-.resume-lead {
-  margin: 0.35rem 0 0;
-  font-size: 0.9375rem;
-  color: var(--text);
-}
-
-.resume-web-note {
-  margin: 0 0 1rem;
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: var(--text-muted);
-}
-
-.resume-web-note a {
-  color: var(--accent);
-}
-
-.resume-download-row {
-  margin-bottom: 1.5rem;
-}
-
-.resume-section--tight {
-  margin-bottom: 1.35rem;
-}
-
-.resume-prose {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--text-muted);
-}
-
-.resume-prose--muted {
-  margin-bottom: 0.5rem;
-  font-size: 0.75rem;
-}
-
-.resume-skills {
-  margin: 0;
-  padding-left: 1.15rem;
-  font-size: 0.875rem;
-  color: var(--text);
-}
-
-.resume-skills li {
-  margin-bottom: 0.25rem;
-}
-
-.resume-spotlight {
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  padding: 1rem 1.1rem 1.1rem;
-}
-
-.resume-spot {
-  margin-bottom: 1.1rem;
-}
-
-.resume-spot:last-child {
-  margin-bottom: 0;
-}
-
-.resume-spot h3 {
-  margin: 0 0 0.35rem;
-  font-size: 1.05rem;
-  color: var(--text);
-}
-
-.resume-spot-sub {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-.resume-film-honors {
-  margin-top: 0.85rem;
-  padding: 0.75rem 0.85rem;
-  border: 1px solid var(--border-strong);
-  background: rgb(4 4 5 / 0.55);
-}
-
-.resume-film-honors h4 {
-  margin: 0 0 0.35rem;
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.resume-film-disclaimer {
-  margin: 0 0 0.55rem;
-  font-size: 0.75rem;
-  line-height: 1.45;
+body.is-resume main {
   color: var(--text-secondary);
 }
 
-.resume-film-list {
-  margin: 0;
-  padding-left: 1.1rem;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--text-muted);
+body.is-resume .resume-header .meta,
+body.is-resume .resume-summary,
+body.is-resume .resume-section p,
+body.is-resume .resume-section li,
+body.is-resume .resume-job .dates {
+  color: var(--text-secondary);
 }
 
-.resume-film-list li {
-  margin-bottom: 0.45rem;
-}
-
-.resume-film-list a {
-  color: var(--accent);
-}
-
-.resume-credits {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.resume-credits li {
-  margin: 0 0 0.35rem;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--text-muted);
-}
-
-.credit-project {
+body.is-resume .resume-header h1,
+body.is-resume .resume-job h3,
+body.is-resume .resume-section h2 {
   color: var(--text);
-  font-weight: 600;
 }
 
-.resume-education {
+body.is-resume .resume-job h3 strong {
+  color: var(--text);
+}
+
+body.is-resume main a {
+  color: #e4b872;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+body.is-resume main a:hover {
+  color: #f3d9a8;
+}
+
+.resume-summary {
   margin: 0;
-  padding-left: 1.15rem;
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-}
-
-@media (max-width: 640px) {
-  .resume-spotlight {
-    padding: 0.85rem;
-  }
+  line-height: 1.55;
 }
 
 @media print {
   @page {
     size: letter;
-    margin: 0.35in 0.42in;
+    margin: 0.5in;
   }
 
-  body.is-resume,
-  body:has(.resume-page) {
-    background: #fff;
-    color: #111;
+  body.is-resume {
+    background: #fff !important;
+  }
+
+  body.is-resume main,
+  body.is-resume .resume-header h1,
+  body.is-resume .resume-header .meta,
+  body.is-resume .resume-summary,
+  body.is-resume .resume-section p,
+  body.is-resume .resume-section li,
+  body.is-resume .resume-job h3,
+  body.is-resume .resume-job .dates,
+  body.is-resume .resume-section h2 {
+    color: #141414 !important;
+  }
+
+  body.is-resume .resume-section h2 {
+    color: #2a2a2a !important;
+  }
+
+  body.is-resume main a {
+    color: #0b4f8a !important;
   }
 
   .site-header,
   .site-footer,
-  .resume-download-row,
-  .resume-web-note,
-  .resume-prose--muted {
+  .resume-download {
     display: none !important;
-  }
-
-  .resume-header {
-    margin-bottom: 0.2rem;
-  }
-
-  .resume-header h1 {
-    font-size: 13pt;
-  }
-
-  .resume-header .meta,
-  .resume-lead {
-    font-size: 7.5pt;
-  }
-
-  .resume-section {
-    margin-bottom: 0.22rem;
-    break-inside: avoid;
-  }
-
-  .resume-section h2 {
-    margin-bottom: 0.25rem;
-    color: #333;
-  }
-
-  .resume-spotlight {
-    padding: 0.28rem 0.38rem;
-    border-color: #ccc;
-    background: #f7f7f7;
-  }
-
-  .resume-spot {
-    margin-bottom: 0.28rem;
-  }
-
-  .resume-film-honors {
-    margin-top: 0.25rem;
-    padding: 0.22rem 0.3rem;
-    background: #eee;
-  }
-
-  .resume-film-disclaimer {
-    display: none;
-  }
-
-  .resume-prose,
-  .resume-skills,
-  .resume-credits li,
-  .resume-film-list,
-  .resume-education {
-    font-size: 7pt;
-    line-height: 1.22;
-    color: #222;
-  }
-
-  .resume-spot h3 {
-    font-size: 8.5pt;
-    margin-bottom: 0.1rem;
-  }
-
-  .resume-spot .dates {
-    margin-bottom: 0.1rem;
-    font-size: 7pt;
-  }
-
-  a {
-    color: #111;
-    text-decoration: underline;
   }
 }
