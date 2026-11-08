@@ -99,23 +99,21 @@ async function measureLayout() {
 }
 
 async function screenshotPanel(filename) {
+  await scrollPanel();
   const handle = await page.$(`#${PANEL_ID}`);
   const box = handle ? await handle.boundingBox() : null;
-  if (!box || box.height < 80) {
-    throw new Error(`Panel not visible for ${filename}`);
+  if (!box || box.height < 80 || box.y < 0 || box.y > 400) {
+    throw new Error(`Panel not in viewport for ${filename} (box=${JSON.stringify(box)})`);
   }
   const title = await page.evaluate(
     (id) => document.getElementById(id)?.querySelector('.gallery-card-title')?.textContent?.trim(),
     PANEL_ID,
   );
-  const top = Math.max(0, Math.floor(box.y - 10));
-  const height = Math.min(900 - top, Math.ceil(box.height + 20));
-  const viewW = (await page.viewport())?.width ?? 1440;
-  await page.screenshot({
-    path: path.join(outDir, filename),
-    clip: { x: 0, y: top, width: viewW, height: Math.max(120, height) },
-  });
-  return { title, top, height, box };
+  if (!title?.toLowerCase().includes('preproduction')) {
+    throw new Error(`Wrong panel for screenshot: title=${title}`);
+  }
+  await handle.screenshot({ path: path.join(outDir, filename) });
+  return { title, method: 'element', box };
 }
 
 await gotoAndReveal(1440, 900);
