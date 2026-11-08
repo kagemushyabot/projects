@@ -24,6 +24,87 @@ export const HOME_WORK_INTRO_STILLS: HomeChaosCollageItem[] = [
   },
 ];
 
+export type GalleryStillRole = 'gallery-still' | 'work-intro-still';
+
+export interface GalleryStillInventoryEntry {
+  projectId: string;
+  title: string;
+  src: string;
+  alt: string;
+  role: GalleryStillRole;
+}
+
+/** Same caps as `PortfolioGallery.astro` visible still tiles (not `+N` overflow). */
+function maxVisibleGalleryImages(layout: GalleryProject['layout']): number {
+  return layout === 'feature' ? 14 : layout === 'wide' ? 10 : 8;
+}
+
+/**
+ * Every genuine still surfaced on `/work-experience/` (gallery still-open tiles + intro heroes).
+ * Excludes video-thumb poster slots by construction — only still roles from gallery data/render.
+ */
+export function buildGalleryStillInventory(): GalleryStillInventoryEntry[] {
+  const { projects } = buildPortfolioGallery();
+  const out: GalleryStillInventoryEntry[] = [];
+
+  for (const project of projects) {
+    if (project.evilEyeLayout) {
+      const layout = project.evilEyeLayout;
+      out.push(
+        {
+          projectId: project.id,
+          title: project.title,
+          src: layout.spotlight.src,
+          alt: layout.spotlight.alt,
+          role: 'gallery-still',
+        },
+        {
+          projectId: project.id,
+          title: project.title,
+          src: layout.pearl.still.src,
+          alt: layout.pearl.still.alt,
+          role: 'gallery-still',
+        },
+        {
+          projectId: project.id,
+          title: project.title,
+          src: layout.onIce.still.src,
+          alt: layout.onIce.still.alt,
+          role: 'gallery-still',
+        },
+      );
+      continue;
+    }
+
+    const visible = project.images.slice(0, maxVisibleGalleryImages(project.layout));
+    for (const img of visible) {
+      out.push({
+        projectId: project.id,
+        title: project.title,
+        src: img.src,
+        alt: img.alt,
+        role: 'gallery-still',
+      });
+    }
+  }
+
+  for (const intro of HOME_WORK_INTRO_STILLS) {
+    out.push({
+      projectId: intro.projectId,
+      title: intro.title,
+      src: intro.src,
+      alt: intro.alt,
+      role: 'work-intro-still',
+    });
+  }
+
+  return out;
+}
+
+function isExcludedVideoPosterUrl(src: string): boolean {
+  return src.includes('img.youtube.com/vi/') || src.includes('mqdefault.jpg');
+}
+
 /** Stills and wp-import paths only — never YouTube/Vimeo poster URLs. */
 export function pickStillVisual(project: GalleryProject): { src: string; alt: string } | null {
   if (project.id === EVIL_EYE_PANEL_ID && project.evilEyeLayout) {
@@ -37,61 +118,100 @@ export function pickStillVisual(project: GalleryProject): { src: string; alt: st
   return null;
 }
 
+export interface HomeSlideshowAllStillsAudit {
+  galleryStillInventory: GalleryStillInventoryEntry[];
+  galleryStillInventoryCount: number;
+  galleryStillInventoryUniqueUrls: string[];
+  includedStills: HomeChaosCollageItem[];
+  includedStillsCount: number;
+  missingStillUrls: string[];
+  extraStillUrls: string[];
+  excludedVideoOnlyProjects: { projectId: string; title: string; youtubeIds: string[] }[];
+  videoPosterUrlsInSlideshow: string[];
+  inventoryMatch: boolean;
+  zeroMissingStills: boolean;
+  zeroVideoPosters: boolean;
+}
+
+/** @deprecated Use `auditHomeSlideshowAllStills` — kept for older capture scripts. */
 export interface HomeSlideshowSourceAudit {
   included: { projectId: string; title: string; src: string }[];
   excluded: { projectId: string; title: string; youtubeIds: string[] }[];
 }
 
-function appendIntroStills(items: HomeChaosCollageItem[]): HomeChaosCollageItem[] {
-  const seen = new Set(items.map((i) => i.src));
-  const out = [...items];
-  for (const intro of HOME_WORK_INTRO_STILLS) {
-    if (seen.has(intro.src)) continue;
-    out.push(intro);
-    seen.add(intro.src);
-  }
-  return out;
-}
+export function auditHomeSlideshowAllStills(): HomeSlideshowAllStillsAudit {
+  const inventory = buildGalleryStillInventory();
+  const included = buildHomeStillSlideshowItems();
+  const inventoryUnique = [...new Set(inventory.map((row) => row.src))];
+  const includedUrls = included.map((row) => row.src);
+  const includedSet = new Set(includedUrls);
 
-export function auditHomeSlideshowSources(): HomeSlideshowSourceAudit {
+  const missingStillUrls = inventoryUnique.filter((src) => !includedSet.has(src));
+  const inventorySet = new Set(inventoryUnique);
+  const extraStillUrls = includedUrls.filter((src) => !inventorySet.has(src));
+
+  const videoPosterUrlsInSlideshow = includedUrls.filter(isExcludedVideoPosterUrl);
+
   const { projects } = buildPortfolioGallery();
-  const included: HomeSlideshowSourceAudit['included'] = [];
-  const excluded: HomeSlideshowSourceAudit['excluded'] = [];
+  const excludedVideoOnlyProjects: HomeSlideshowAllStillsAudit['excludedVideoOnlyProjects'] = [];
   for (const project of projects) {
-    const still = pickStillVisual(project);
-    if (still) {
-      included.push({ projectId: project.id, title: project.title, src: still.src });
-    } else if (project.videos.length) {
-      excluded.push({
+    const hasStillInInventory = inventory.some((row) => row.projectId === project.id);
+    if (!hasStillInInventory && project.videos.length > 0) {
+      excludedVideoOnlyProjects.push({
         projectId: project.id,
         title: project.title,
         youtubeIds: project.videos.map((v) => v.youtubeId),
       });
     }
   }
-  for (const intro of HOME_WORK_INTRO_STILLS) {
-    if (!included.some((row) => row.src === intro.src)) {
-      included.push({ projectId: intro.projectId, title: intro.title, src: intro.src });
-    }
-  }
-  return { included, excluded };
+
+  return {
+    galleryStillInventory: inventory,
+    galleryStillInventoryCount: inventory.length,
+    galleryStillInventoryUniqueUrls: inventoryUnique,
+    includedStills: included,
+    includedStillsCount: included.length,
+    missingStillUrls,
+    extraStillUrls,
+    excludedVideoOnlyProjects,
+    videoPosterUrlsInSlideshow,
+    inventoryMatch: missingStillUrls.length === 0 && extraStillUrls.length === 0,
+    zeroMissingStills: missingStillUrls.length === 0,
+    zeroVideoPosters: videoPosterUrlsInSlideshow.length === 0,
+  };
 }
 
-/** Still-only slideshow items (no video thumbnails). */
+export function auditHomeSlideshowSources(): HomeSlideshowSourceAudit {
+  const audit = auditHomeSlideshowAllStills();
+  return {
+    included: audit.includedStills.map(({ projectId, title, src }) => ({ projectId, title, src })),
+    excluded: audit.excludedVideoOnlyProjects.map((row) => ({
+      projectId: row.projectId,
+      title: row.title,
+      youtubeIds: row.youtubeIds,
+    })),
+  };
+}
+
+/** Still-only slideshow — every gallery still + intro heroes; dedupe identical URLs. */
 export function buildHomeStillSlideshowItems(): HomeChaosCollageItem[] {
-  const { projects } = buildPortfolioGallery();
+  const inventory = buildGalleryStillInventory();
+  const seen = new Set<string>();
   const items: HomeChaosCollageItem[] = [];
-  for (const project of projects) {
-    const visual = pickStillVisual(project);
-    if (!visual) continue;
+
+  for (const row of inventory) {
+    if (seen.has(row.src)) continue;
+    if (isExcludedVideoPosterUrl(row.src)) continue;
+    seen.add(row.src);
     items.push({
-      projectId: project.id,
-      title: project.title,
-      src: visual.src,
-      alt: visual.alt,
+      projectId: row.projectId,
+      title: row.title,
+      src: row.src,
+      alt: row.alt,
     });
   }
-  return appendIntroStills(items);
+
+  return items;
 }
 
 function pickVisual(project: GalleryProject): { src: string; alt: string } | null {

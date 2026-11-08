@@ -77,6 +77,140 @@ export const GALLERY_ROW_PAIRS: readonly (readonly [string, string])[] = [
 
 export const GALLERY_ROW_PAIR_IDS = new Set(GALLERY_ROW_PAIRS.flat());
 
+const PAIR_LEFT_TO_RIGHT = new Map(GALLERY_ROW_PAIRS.map(([left, right]) => [left, right] as const));
+
+/** Desktop 12-column track span per panel (matches `work-experience.css` before row packing). */
+export function desktopGalleryGridSpan(project: GalleryProject): number {
+  if (project.id === EVIL_EYE_PANEL_ID) return 12;
+  if ((SOLO_ROW_PANEL_IDS as readonly string[]).includes(project.id)) return 12;
+  if (GALLERY_ROW_PAIR_IDS.has(project.id)) return 6;
+  switch (project.layout) {
+    case 'feature':
+      return 8;
+    case 'wide':
+      return 6;
+    case 'tall':
+      return 3;
+    default:
+      return 4;
+  }
+}
+
+export interface GalleryGridPlacement {
+  project: GalleryProject;
+  gridColumn: string;
+  index: number;
+}
+
+/** Pack gallery projects into centered desktop grid rows (12-column tracks). */
+export function buildGalleryGridPlacements(projects: GalleryProject[]): GalleryGridPlacement[] {
+  const placements: GalleryGridPlacement[] = [];
+  let index = 0;
+
+  for (let i = 0; i < projects.length; ) {
+    const head = projects[i];
+
+    if (
+      head.id === EVIL_EYE_PANEL_ID ||
+      (SOLO_ROW_PANEL_IDS as readonly string[]).includes(head.id)
+    ) {
+      placements.push({ project: head, gridColumn: '1 / -1', index: index++ });
+      i += 1;
+      continue;
+    }
+
+    const pairRight = PAIR_LEFT_TO_RIGHT.get(head.id);
+    if (pairRight && projects[i + 1]?.id === pairRight) {
+      placements.push({ project: head, gridColumn: '1 / span 6', index: index++ });
+      placements.push({ project: projects[i + 1], gridColumn: '7 / span 6', index: index++ });
+      i += 2;
+      continue;
+    }
+
+    const row: GalleryProject[] = [];
+    const spans: number[] = [];
+    let j = i;
+    while (j < projects.length) {
+      const candidate = projects[j];
+      if (
+        candidate.id === EVIL_EYE_PANEL_ID ||
+        (SOLO_ROW_PANEL_IDS as readonly string[]).includes(candidate.id) ||
+        PAIR_LEFT_TO_RIGHT.has(candidate.id)
+      ) {
+        break;
+      }
+      const span = desktopGalleryGridSpan(candidate);
+      const used = spans.reduce((a, b) => a + b, 0);
+      if (used + span > 12) break;
+      row.push(candidate);
+      spans.push(span);
+      j += 1;
+      if (used + span === 12) break;
+    }
+
+    if (row.length === 0) {
+      const span = desktopGalleryGridSpan(head);
+      const inset = Math.floor((12 - span) / 2);
+      placements.push({ project: head, gridColumn: `${inset + 1} / span ${span}`, index: index++ });
+      i += 1;
+      continue;
+    }
+
+    const used = spans.reduce((a, b) => a + b, 0);
+    const inset = used >= 12 ? 0 : Math.floor((12 - used) / 2);
+    let col = inset + 1;
+    for (let k = 0; k < row.length; k++) {
+      placements.push({ project: row[k], gridColumn: `${col} / span ${spans[k]}`, index: index++ });
+      col += spans[k];
+    }
+    i += row.length;
+  }
+
+  return placements;
+}
+
+function gridColumnStart(gridColumn: string): number {
+  const left = gridColumn.split('/')[0]?.trim() ?? '1';
+  return gridColumn.includes('/ -1') ? 1 : Number.parseInt(left, 10);
+}
+
+export function buildGalleryRowGroups(projects: GalleryProject[]): string[][] {
+  const placements = buildGalleryGridPlacements(projects);
+  const groups: string[][] = [];
+  let current: string[] = [];
+  let prevStart = 0;
+
+  const flush = () => {
+    if (current.length) groups.push(current);
+    current = [];
+    prevStart = 0;
+  };
+
+  for (const { project, gridColumn } of placements) {
+    if (gridColumn === '1 / -1') {
+      flush();
+      groups.push([project.id]);
+      continue;
+    }
+    const start = gridColumnStart(gridColumn);
+    if (gridColumn === '1 / span 6' && current.length === 0) {
+      current = [project.id];
+      prevStart = start;
+      continue;
+    }
+    if (gridColumn === '7 / span 6' && current.length === 1) {
+      current.push(project.id);
+      flush();
+      continue;
+    }
+    if (current.length && start <= prevStart) flush();
+    current.push(project.id);
+    prevStart = start;
+  }
+  flush();
+  return groups;
+}
+
 /**
  * Ordered gallery block starting at Mission; tail after Insight preserved from pre-curate order.
  * Tuple = pair on one row; string = solo row.

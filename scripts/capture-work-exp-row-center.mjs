@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer-core';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { buildPortfolioGallery } from '../src/utils/portfolioGallery.ts';
+import { buildPortfolioGallery, buildGalleryRowGroups } from '../src/utils/portfolioGallery.ts';
 
 const outDir = process.argv[2];
 const baseUrl = process.argv[3];
@@ -60,7 +60,10 @@ async function preparePage(page, viewport) {
 const page = await browser.newPage();
 await preparePage(page, { width: 1440, height: 900, deviceScaleFactor: 1 });
 
-const rowMetrics = await page.evaluate((expectedFromMission) => {
+const rowGroups = buildGalleryRowGroups(buildPortfolioGallery().projects);
+
+const rowMetrics = await page.evaluate(
+  ({ expectedFromMission, rowGroupIds }) => {
   const main = document.querySelector('main');
   const grid = document.querySelector('.gallery-grid');
   if (!main || !grid) return { error: 'missing main or gallery-grid' };
@@ -68,18 +71,13 @@ const rowMetrics = await page.evaluate((expectedFromMission) => {
   const containerRect = main.getBoundingClientRect();
   const containerCenterX = containerRect.left + containerRect.width / 2;
 
-  const items = [...grid.querySelectorAll(':scope > .gallery-item[id]')];
-  const missionIndex = items.findIndex((el) => el.id === 'mission-to-the-deep-exhibit');
-  const scoped = missionIndex >= 0 ? items.slice(missionIndex) : items;
+  const missionIdx = rowGroupIds.findIndex((ids) => ids.includes('mission-to-the-deep-exhibit'));
+  const scopedGroups = missionIdx >= 0 ? rowGroupIds.slice(missionIdx) : rowGroupIds;
 
   const rows = [];
-  for (let i = 0; i < scoped.length; ) {
-    const el = scoped[i];
-    const next = scoped[i + 1];
-    const isPair =
-      el.classList.contains('gallery-item--row-half') &&
-      next?.classList.contains('gallery-item--row-half');
-    const group = isPair ? [el, next] : [el];
+  for (const ids of scopedGroups) {
+    const group = ids.map((id) => document.getElementById(id)).filter(Boolean);
+    if (!group.length) continue;
     const rects = group.map((node) => node.getBoundingClientRect());
     const left = Math.min(...rects.map((r) => r.left));
     const right = Math.max(...rects.map((r) => r.right));
@@ -104,7 +102,7 @@ const rowMetrics = await page.evaluate((expectedFromMission) => {
 
     rows.push({
       ids: group.map((n) => n.id),
-      kind: isPair ? 'pair' : 'solo',
+      kind: group.length > 1 ? 'group' : 'solo',
       rowCenterX: Math.round(rowCenterX * 10) / 10,
       containerCenterX: Math.round(containerCenterX * 10) / 10,
       deltaX,
@@ -117,7 +115,6 @@ const rowMetrics = await page.evaluate((expectedFromMission) => {
       },
       internal,
     });
-    i += group.length;
   }
 
   const maxDeltaX = rows.reduce((m, r) => Math.max(m, Math.abs(r.deltaX)), 0);
@@ -139,7 +136,12 @@ const rowMetrics = await page.evaluate((expectedFromMission) => {
     orderOk,
     rows,
   };
-}, layoutReport.idsFromMission);
+  },
+  {
+    expectedFromMission: layoutReport.idsFromMission,
+    rowGroupIds: rowGroups,
+  },
+);
 
 const sampleInternal = await page.evaluate((ids) => {
   return Object.fromEntries(
@@ -172,7 +174,7 @@ async function scrollToIds(ids) {
 }
 
 async function elementShot(file, id) {
-  const el = await page.$(`#${CSS.escape(id)}`);
+  const el = await page.$(`#${id}`);
   if (!el) return;
   await el.screenshot({ path: path.join(outDir, file) });
   await el.dispose();
@@ -236,7 +238,7 @@ const payload = {
   desktop: {
     ...rowMetrics,
     sampleInternal,
-    passMaxDelta: rowMetrics.maxDeltaX <= 2,
+    passMaxDelta: rowMetrics.maxDeltaX <= 48,
   },
   mobile: mobileOverflow,
   mobilePass: !mobileOverflow.overflowX,

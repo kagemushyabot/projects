@@ -1,7 +1,10 @@
 import puppeteer from 'puppeteer-core';
 import { copyFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { auditHomeSlideshowSources, buildHomeStillSlideshowItems } from '../src/utils/homeChaosCollage.ts';
+import {
+  auditHomeSlideshowAllStills,
+  buildHomeStillSlideshowItems,
+} from '../src/utils/homeChaosCollage.ts';
 
 const outDir = process.argv[2];
 const baseUrl = process.argv[3];
@@ -14,7 +17,8 @@ if (!outDir || !baseUrl) {
 
 await mkdir(outDir, { recursive: true });
 
-const audit = auditHomeSlideshowSources();
+const audit = auditHomeSlideshowAllStills();
+const stillItemCount = buildHomeStillSlideshowItems().length;
 
 function analyzeIntervals(starts) {
   if (starts.length < 2) return { intervals: [], mean: null, variance: null, maxDev: null };
@@ -98,9 +102,15 @@ const metrics = {
   baseUrl,
   deploySha: sha,
   capturedAt: new Date().toISOString(),
-  stillItemCount: buildHomeStillSlideshowItems().length,
-  includedStills: audit.included,
-  excludedVideoThumbs: audit.excluded.map((row) => ({
+  stillItemCount,
+  galleryStillInventoryCount: audit.galleryStillInventoryCount,
+  galleryStillInventoryUniqueCount: audit.galleryStillInventoryUniqueUrls.length,
+  galleryStillInventory: audit.galleryStillInventory,
+  includedStills: audit.includedStills,
+  missingStillUrls: audit.missingStillUrls,
+  extraStillUrls: audit.extraStillUrls,
+  excludedVideoOnlyProjects: audit.excludedVideoOnlyProjects,
+  excludedVideoThumbs: audit.excludedVideoOnlyProjects.map((row) => ({
     projectId: row.projectId,
     title: row.title,
     posterUrls: row.youtubeIds.map((id) => `https://img.youtube.com/vi/${id}/mqdefault.jpg`),
@@ -117,13 +127,15 @@ const metrics = {
     minTicks: desktop.ticks.length >= 5,
     intervalNear1s: desktop.tail.mean != null && Math.abs(desktop.tail.mean - expectedInterval) <= 25,
     intervalUniform: desktop.tail.maxDev != null && desktop.tail.maxDev <= 30,
-    noYoutubeInSlideshowSources: audit.included.every((s) => !s.src.includes('img.youtube.com')),
-    stillItemCountExpected: 19,
-    featuredIntroIds: ['work-intro-tactic-studio-featured', 'work-intro-splattic-featured'],
-    excludedVideoOnlyCount: audit.excluded.length === 3,
-    itemCountOk: buildHomeStillSlideshowItems().length === 19,
+    noYoutubeInSlideshowSources: audit.includedStills.every((s) => !s.src.includes('img.youtube.com')),
+    zeroMissingStills: audit.zeroMissingStills,
+    zeroVideoPosters: audit.zeroVideoPosters,
+    inventoryMatch: audit.inventoryMatch,
+    itemCountOk: stillItemCount === audit.galleryStillInventoryUniqueUrls.length,
     pass:
-      buildHomeStillSlideshowItems().length === 19 &&
+      audit.inventoryMatch &&
+      audit.zeroVideoPosters &&
+      stillItemCount === audit.galleryStillInventoryUniqueUrls.length &&
       desktop.t0.imgCount === 1 &&
       desktop.t1.imgCount === 1 &&
       mobile.t0.imgCount === 1 &&
@@ -132,7 +144,7 @@ const metrics = {
       desktop.ticks.length >= 5 &&
       desktop.tail.mean != null &&
       Math.abs(desktop.tail.mean - expectedInterval) <= 25 &&
-      audit.included.every((s) => !s.src.includes('img.youtube.com')),
+      audit.includedStills.every((s) => !s.src.includes('img.youtube.com')),
   },
 };
 
