@@ -14,13 +14,22 @@ export interface GalleryVideo {
   label?: string;
 }
 
-export interface GalleryMediaSlot {
-  kind: 'image' | 'video';
-  src?: string;
-  youtubeId?: string;
-  alt?: string;
-  /** Verified English copy (HTML with <strong>) shown under still images */
-  captionHtml?: string;
+export interface GalleryStillWithCaption {
+  src: string;
+  alt: string;
+  captionText: string;
+}
+
+export interface GalleryMediaPair {
+  still: GalleryStillWithCaption;
+  youtubeId: string;
+  videoAlt: string;
+}
+
+export interface EvilEyeStructuredLayout {
+  spotlight: { src: string; alt: string };
+  pearl: GalleryMediaPair;
+  onIce: GalleryMediaPair;
 }
 
 export interface GalleryProject {
@@ -33,18 +42,24 @@ export interface GalleryProject {
   sources: PortfolioSource[];
   layout: 'compact' | 'wide' | 'tall' | 'feature';
   mergedFrom: string[];
-  /** Curated L→R media order for Evil Eye Spotlight cluster */
-  mediaSlots?: GalleryMediaSlot[];
+  evilEyeLayout?: EvilEyeStructuredLayout;
 }
 
 export const EVIL_EYE_PANEL_ID = 'evil-eye-pictures-san-francisco';
 export const WATER_PANEL_ID = 'water-is-life-hidden-dangers-vr-campaign';
 
-export const EVIL_EYE_PEARL_CAPTION_HTML =
-  '<strong>Directed by Patrick Osborne.</strong> A father and daughter travel the country in their hatchback, chasing their dreams — Google Spotlight Stories’ “Pearl” for 360°, VR, and theatrical release. <strong>Academy Award nominee, Best Animated Short Film (2017).</strong>';
+/** Single still + single video — hero frame aligned to Water (desktop ~345×215). */
+export const PAIR_HERO_FEATURE_IDS = new Set([
+  'facebook-spaces',
+  'google-play-music-panorama-festival-nyc-2016',
+  WATER_PANEL_ID,
+]);
 
-export const EVIL_EYE_ON_ICE_CAPTION_HTML =
-  '<strong>Directed by Shannon Tindle.</strong> A Google Spotlight Stories VR short about an extravagant ice show and its star performer interrupted by an unlikely interloper. <strong>Annie Award nominee, Best Animated Short Subject (43rd Annie Awards, 2016).</strong>';
+export const EVIL_EYE_PEARL_CAPTION =
+  'Directed by Patrick Osborne. A father and daughter travel the country in their hatchback, chasing their dreams — Google Spotlight Stories’ “Pearl” for 360°, VR, and theatrical release. Academy Award nominee, Best Animated Short Film (2017).';
+
+export const EVIL_EYE_ON_ICE_CAPTION =
+  'Directed by Shannon Tindle. A Google Spotlight Stories VR short about an extravagant ice show and its star performer interrupted by an unlikely interloper. Annie Award nominee, Best Animated Short Subject (43rd Annie Awards, 2016).';
 
 export const EVIL_EYE_COPY_SOURCES = {
   pearl: [
@@ -387,35 +402,30 @@ function curateEvilEyePicturesPanel(projects: GalleryProject[]): {
     (p) => normalizeTitle(p.title) === 'pearl' && p.id === 'pearl',
   );
 
-  const mediaSlots: GalleryMediaSlot[] = [
-    {
-      kind: 'image',
+  const evilEyeLayout: EvilEyeStructuredLayout = {
+    spotlight: {
       src: '/assets/wp-import/image1.jpeg',
       alt: 'Google Spotlight Stories',
     },
-    {
-      kind: 'video',
+    pearl: {
+      still: {
+        src: '/assets/wp-import/image3.jpeg',
+        alt: 'Pearl still',
+        captionText: EVIL_EYE_PEARL_CAPTION,
+      },
       youtubeId: 'WqCH4DNQBUA',
-      alt: 'Pearl — Google Spotlight Stories',
+      videoAlt: 'Pearl — Google Spotlight Stories',
     },
-    {
-      kind: 'image',
-      src: '/assets/wp-import/image3.jpeg',
-      alt: 'Pearl still',
-      captionHtml: EVIL_EYE_PEARL_CAPTION_HTML,
-    },
-    {
-      kind: 'video',
+    onIce: {
+      still: {
+        src: '/assets/wp-import/image4.jpeg',
+        alt: 'On Ice still',
+        captionText: EVIL_EYE_ON_ICE_CAPTION,
+      },
       youtubeId: '0cYI8AXkC2I',
-      alt: 'On Ice — Google Spotlight Stories',
+      videoAlt: 'On Ice — Google Spotlight Stories',
     },
-    {
-      kind: 'image',
-      src: '/assets/wp-import/image4.jpeg',
-      alt: 'On Ice still',
-      captionHtml: EVIL_EYE_ON_ICE_CAPTION_HTML,
-    },
-  ];
+  };
 
   const evilEye: GalleryProject = {
     id: EVIL_EYE_PANEL_ID,
@@ -427,7 +437,7 @@ function curateEvilEyePicturesPanel(projects: GalleryProject[]): {
     sources: [...new Set(absorbed.flatMap((p) => p.sources))],
     layout: 'feature',
     mergedFrom: absorbed.map((p) => p.id),
-    mediaSlots,
+    evilEyeLayout,
   };
 
   const rest = projects.filter((p) => !absorbed.includes(p));
@@ -508,15 +518,15 @@ export function buildPortfolioGallery(): {
     .filter((p) => !/^(animation|resume|miscellaneous)$/i.test(p.title.trim()));
 
   const { projects: curated, evilEyeReport } = curateEvilEyePicturesPanel(projects);
-  projects = curated.map((p, i) => ({
-    ...p,
-    layout:
-      p.id === EVIL_EYE_PANEL_ID
+  projects = curated.map((p, i) => {
+    let layout =
+      p.id === EVIL_EYE_PANEL_ID || PAIR_HERO_FEATURE_IDS.has(p.id)
         ? ('feature' as const)
         : p.layout === 'compact'
           ? LAYOUT_CYCLE[i % LAYOUT_CYCLE.length]
-          : p.layout,
-  }));
+          : p.layout;
+    return { ...p, layout };
+  });
 
   if (evilEyeReport.absorbedPanelIds.length) {
     dedupeReport.push({
