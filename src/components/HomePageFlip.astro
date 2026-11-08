@@ -90,25 +90,33 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
     if (!root || !sheet || !under || !imgFront || !imgBack || !imgUnder || !titleEl || !flipItems.length) return;
 
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var AUTO_MS = 3200;
+    var FLIP_DURATION_MS = 300;
+    var FLIP_INTERVAL_MS = 3000;
     var paused = false;
     var flipping = false;
-    var timer = 0;
-    var flipIndex = 0;
-    var lastFlipMs = 0;
+    var cadenceTimer = 0;
+    var cadenceAlternate = false;
+    var cadenceStarts = [];
     var order = flipItems.map(function (_, i) {
       return i;
     });
     var seqPtr = 0;
 
-    var FLIP_MODES = [
-      { id: 'right-y', axis: 'y', origin: '100% 42%', end: 'rotateY(178deg) rotateX(6deg)', persp: '78% 48%' },
-      { id: 'left-y', axis: 'y', origin: '0% 55%', end: 'rotateY(-178deg) rotateX(4deg)', persp: '22% 52%' },
-      { id: 'top-x', axis: 'x', origin: '48% 0%', end: 'rotateX(-175deg) rotateY(-8deg)', persp: '50% 18%' },
-      { id: 'bottom-x', axis: 'x', origin: '52% 100%', end: 'rotateX(175deg) rotateY(6deg)', persp: '50% 88%' },
-      { id: 'diag-tr', axis: 'y', origin: '100% 8%', end: 'rotateY(168deg) rotateX(-20deg) rotateZ(2deg)', persp: '92% 22%' },
-      { id: 'diag-bl', axis: 'y', origin: '4% 92%', end: 'rotateY(-168deg) rotateX(16deg)', persp: '8% 76%' },
-    ];
+    var FLIP_RIGHT = {
+      id: 'right-y',
+      axis: 'y',
+      origin: '100% 50%',
+      end: 'rotateY(-176deg)',
+    };
+    var FLIP_LEFT = {
+      id: 'left-y',
+      axis: 'y',
+      origin: '0% 50%',
+      end: 'rotateY(176deg)',
+    };
+
+    root.dataset.flipDurationMs = String(FLIP_DURATION_MS);
+    root.dataset.flipIntervalMs = String(FLIP_INTERVAL_MS);
 
     function shuffle(arr) {
       for (var i = arr.length - 1; i > 0; i--) {
@@ -139,13 +147,9 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
       img.alt = project.title;
     }
 
-    function pickMode(direction) {
-      if (flipIndex === 0) {
-        flipIndex += 1;
-        return FLIP_MODES[0];
-      }
-      var pool = FLIP_MODES.slice(1);
-      return pool[Math.floor(Math.random() * pool.length)];
+    function pickMode() {
+      cadenceAlternate = !cadenceAlternate;
+      return cadenceAlternate ? FLIP_RIGHT : FLIP_LEFT;
     }
 
     function restingLayout() {
@@ -175,7 +179,7 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
     applyResting(seqPtr);
     prepareBack(seqPtr + 1);
 
-    function snapAfterTurn(nextSeq, flipMs) {
+    function snapAfterTurn(nextSeq) {
       seqPtr = ((nextSeq % order.length) + order.length) % order.length;
       var current = projectAt(seqPtr);
       setFace(imgFront, current);
@@ -189,7 +193,7 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
       sheet.dataset.resting = 'true';
       root.dataset.currentProject = current.projectId;
       root.dataset.currentTitle = current.title;
-      root.dataset.lastFlipMs = String(flipMs);
+      root.dataset.lastFlipMs = String(FLIP_DURATION_MS);
       prepareBack(seqPtr + 1);
       flipping = false;
       root.dataset.stageCovered = 'single';
@@ -198,13 +202,15 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
     function runFlip(direction) {
       if (flipping) return;
       flipping = true;
+      var startAt = performance.now();
+      cadenceStarts.push(startAt);
+      if (cadenceStarts.length > 24) cadenceStarts.shift();
+      root.dataset.lastFlipStart = String(startAt);
       sheet.dataset.resting = 'false';
       var nextSeq = seqPtr + (direction < 0 ? -1 : 1);
       var outgoing = projectAt(seqPtr);
       var incoming = projectAt(nextSeq);
-      var mode = pickMode(direction);
-      var flipMs = 200 + Math.floor(Math.random() * 151);
-      lastFlipMs = flipMs;
+      var mode = pickMode();
 
       setFace(imgFront, outgoing);
       setFace(imgUnder, outgoing);
@@ -214,12 +220,9 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
       sheet.dataset.axis = mode.axis;
       sheet.dataset.flipMode = mode.id;
       sheet.style.transformOrigin = mode.origin;
-      sheet.style.setProperty('--flip-ms', String(flipMs));
+      sheet.style.setProperty('--flip-ms', String(FLIP_DURATION_MS));
       root.dataset.lastFlipMode = mode.id;
       root.dataset.stageCovered = 'under+sheet';
-
-      var viewport = root.querySelector('.home-flip-viewport');
-      if (viewport && mode.persp) viewport.style.perspectiveOrigin = mode.persp;
 
       sheet.classList.add('home-flip-sheet--animating');
       sheet.style.transform = 'none';
@@ -231,18 +234,21 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
       });
 
       window.setTimeout(function () {
-        snapAfterTurn(nextSeq, flipMs);
-        if (viewport) viewport.style.perspectiveOrigin = '';
-      }, flipMs + 32);
+        snapAfterTurn(nextSeq);
+      }, FLIP_DURATION_MS + 20);
     }
 
-    function scheduleAuto() {
-      window.clearTimeout(timer);
+    function startCadence() {
+      window.clearInterval(cadenceTimer);
       if (reduced || paused) return;
-      timer = window.setTimeout(function () {
-        runFlip(1);
-        scheduleAuto();
-      }, AUTO_MS);
+      cadenceTimer = window.setInterval(function () {
+        if (!paused && !flipping) runFlip(1);
+      }, FLIP_INTERVAL_MS);
+    }
+
+    function stopCadence() {
+      window.clearInterval(cadenceTimer);
+      cadenceTimer = 0;
     }
 
     if (reduced) {
@@ -274,18 +280,18 @@ const initialSrc = initial ? imgSrc(initial.src) : '';
         pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
         pauseBtn.textContent = paused ? 'Resume motion' : 'Pause motion';
         root.classList.toggle('home-flip--paused', paused);
-        if (paused) window.clearTimeout(timer);
-        else scheduleAuto();
+        if (paused) stopCadence();
+        else startCadence();
       });
     }
 
-    scheduleAuto();
+    startCadence();
 
     root.runFlipForTest = function (dir) {
       runFlip(dir || 1);
     };
-    root.getLastFlipMs = function () {
-      return lastFlipMs;
+    root.getCadenceStarts = function () {
+      return cadenceStarts.slice();
     };
   })();
 </script>
