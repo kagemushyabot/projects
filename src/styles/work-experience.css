@@ -82,6 +82,21 @@
   background: #0a0a0c;
 }
 
+a.work-intro-visual.work-intro-visual--external {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+a.work-intro-visual.work-intro-visual--external:hover {
+  border-color: var(--accent-dim);
+}
+
+a.work-intro-visual.work-intro-visual--external:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .work-intro-visual--featured img {
   display: block;
   width: 100%;
