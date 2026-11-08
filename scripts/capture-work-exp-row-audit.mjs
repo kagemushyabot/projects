@@ -194,6 +194,8 @@ const missionPass =
   );
 
 async function screenshotPanelRow(ids, filename) {
+  const viewport = page.viewport();
+  const viewW = viewport?.width ?? 1440;
   await scrollPanelsForCapture(ids);
   await new Promise((r) => setTimeout(r, 250));
   const boxes = [];
@@ -217,7 +219,7 @@ async function screenshotPanelRow(ids, filename) {
   const scrollY = await page.evaluate(() => window.scrollY);
   await page.screenshot({
     path: path.join(outDir, filename),
-    clip: { x: 0, y: top, width: 1440, height },
+    clip: { x: 0, y: top, width: viewW, height },
   });
   return {
     top,
