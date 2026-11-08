@@ -1,20 +1,21 @@
 ---
-import { buildPortfolioGallery, EVIL_EYE_PANEL_ID } from '../utils/portfolioGallery';
+import {
+  buildPortfolioGallery,
+  EVIL_EYE_PANEL_ID,
+  PAIR_HERO_FEATURE_IDS,
+  SOLO_ROW_PANEL_IDS,
+} from '../utils/portfolioGallery';
 import { assetUrl } from '../utils/paths';
 import PortfolioVideoModal from './PortfolioVideoModal.astro';
+import PortfolioImageModal from './PortfolioImageModal.astro';
+import StillZoomBadge from './StillZoomBadge.astro';
 
 const { projects } = buildPortfolioGallery();
+const SOLO_ROW_SET = new Set<string>(SOLO_ROW_PANEL_IDS);
 
 function thumbSrc(youtubeId: string) {
   return `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
 }
-
-/** Panels that use the Water reference hero frame (1 still + 1 video). */
-const PAIR_HERO_IDS = new Set([
-  'facebook-spaces',
-  'google-play-music-panorama-festival-nyc-2016',
-  'water-is-life-hidden-dangers-vr-campaign',
-]);
 ---
 
 <div class="portfolio-gallery" id="work-main">
@@ -25,10 +26,11 @@ const PAIR_HERO_IDS = new Set([
         const visibleImages = project.images.slice(0, maxImages);
         const extraImages = project.images.length - visibleImages.length;
         const isPairHero =
-          PAIR_HERO_IDS.has(project.id) ||
+          PAIR_HERO_FEATURE_IDS.has(project.id) ||
           (visibleImages.length === 1 && project.videos.length === 1 && project.videos.length > 0);
         const isMixed = visibleImages.length > 0 && project.videos.length > 0;
         const layout = project.evilEyeLayout;
+        const isSoloRow = SOLO_ROW_SET.has(project.id);
 
         return (
         <li
@@ -38,6 +40,7 @@ const PAIR_HERO_IDS = new Set([
             'reveal',
             `gallery-item--${project.layout}`,
             project.id === EVIL_EYE_PANEL_ID && 'gallery-item--evil-eye',
+            isSoloRow && 'gallery-item--solo-row',
           ]}
           style={`--reveal-delay: ${(index % 10) * 35}ms`}
         >
@@ -49,27 +52,45 @@ const PAIR_HERO_IDS = new Set([
 
             {layout ? (
               <div class="gallery-card-media gallery-card-media--evil-eye" data-media-grid data-mixed-panel>
-                <div class="gallery-evil-eye-spotlight">
-                  <figure class="gallery-image gallery-image--still gallery-image--hero-frame">
+                <div class="gallery-evil-eye-spotlight-band">
+                  <button
+                    type="button"
+                    class="gallery-still-open gallery-still-open--hero gallery-still-open--spotlight gallery-image gallery-image--still gallery-image--hero-frame"
+                    data-image-open
+                    data-image-src={assetUrl(layout.spotlight.src)}
+                    data-image-title="Google Spotlight Stories"
+                    data-image-alt={layout.spotlight.alt}
+                    aria-label={`View larger image: ${layout.spotlight.alt}`}
+                  >
                     <img
                       src={assetUrl(layout.spotlight.src)}
                       alt={layout.spotlight.alt}
                       loading="lazy"
                       decoding="async"
                     />
-                  </figure>
+                    <StillZoomBadge />
+                  </button>
                 </div>
 
                 <div class="gallery-evil-eye-pair gallery-evil-eye-pair--pearl" data-media-pair>
                   <div class="gallery-evil-eye-pair-still">
-                    <figure class="gallery-image gallery-image--still gallery-image--hero-frame">
+                    <button
+                      type="button"
+                      class="gallery-still-open gallery-still-open--hero gallery-image gallery-image--still gallery-image--hero-frame"
+                      data-image-open
+                      data-image-src={assetUrl(layout.pearl.still.src)}
+                      data-image-title="Pearl still"
+                      data-image-alt={layout.pearl.still.alt}
+                      aria-label={`View larger image: ${layout.pearl.still.alt}`}
+                    >
                       <img
                         src={assetUrl(layout.pearl.still.src)}
                         alt={layout.pearl.still.alt}
                         loading="lazy"
                         decoding="async"
                       />
-                    </figure>
+                      <StillZoomBadge />
+                    </button>
                     <p class="gallery-evil-eye-caption">{layout.pearl.still.captionText}</p>
                   </div>
                   <div class="gallery-evil-eye-pair-video">
@@ -100,14 +121,23 @@ const PAIR_HERO_IDS = new Set([
 
                 <div class="gallery-evil-eye-pair gallery-evil-eye-pair--on-ice" data-media-pair>
                   <div class="gallery-evil-eye-pair-still">
-                    <figure class="gallery-image gallery-image--still gallery-image--hero-frame">
+                    <button
+                      type="button"
+                      class="gallery-still-open gallery-still-open--hero gallery-image gallery-image--still gallery-image--hero-frame"
+                      data-image-open
+                      data-image-src={assetUrl(layout.onIce.still.src)}
+                      data-image-title="On Ice still"
+                      data-image-alt={layout.onIce.still.alt}
+                      aria-label={`View larger image: ${layout.onIce.still.alt}`}
+                    >
                       <img
                         src={assetUrl(layout.onIce.still.src)}
                         alt={layout.onIce.still.alt}
                         loading="lazy"
                         decoding="async"
                       />
-                    </figure>
+                      <StillZoomBadge />
+                    </button>
                     <p class="gallery-evil-eye-caption">{layout.onIce.still.captionText}</p>
                   </div>
                   <div class="gallery-evil-eye-pair-video">
@@ -143,20 +173,30 @@ const PAIR_HERO_IDS = new Set([
                     'gallery-card-media',
                     isPairHero && 'gallery-card-media--pair-hero',
                     isMixed && 'gallery-card-media--mixed',
+                    isSoloRow && 'gallery-card-media--solo-row',
                   ]}
                   data-media-grid
                   data-mixed-panel={isMixed ? '' : undefined}
                 >
                   {
                     visibleImages.map((img) => (
-                      <figure class="gallery-image gallery-image--still gallery-image--hero-frame">
+                      <button
+                        type="button"
+                        class="gallery-still-open gallery-still-open--hero gallery-image gallery-image--still gallery-image--hero-frame"
+                        data-image-open
+                        data-image-src={assetUrl(img.src)}
+                        data-image-title={project.title}
+                        data-image-alt={img.alt}
+                        aria-label={`View larger image: ${img.alt || project.title}`}
+                      >
                         <img
                           src={assetUrl(img.src)}
                           alt={img.alt}
                           loading="lazy"
                           decoding="async"
                         />
-                      </figure>
+                        <StillZoomBadge />
+                      </button>
                     ))
                   }
                   {
@@ -214,3 +254,4 @@ const PAIR_HERO_IDS = new Set([
 </div>
 
 <PortfolioVideoModal />
+<PortfolioImageModal />

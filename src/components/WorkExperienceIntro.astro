@@ -1,5 +1,6 @@
 ---
 import { assetUrl } from '../utils/paths';
+import StillZoomBadge from './StillZoomBadge.astro';
 
 const tacticImage = assetUrl('/assets/work-intro/tactic-studio-featured.png');
 const splatticImage = assetUrl('/assets/work-intro/splattic-featured.png');
@@ -11,11 +12,14 @@ const splatticUrl = 'https://www.splattic.com/';
   <h2 id="work-intro-heading" class="sr-only">Studio highlights</h2>
 
   <article class="work-intro-block work-intro-block--tactic reveal">
-    <a
-      class="work-intro-visual work-intro-visual--featured"
-      href={tacticUrl}
-      target="_blank"
-      rel="noopener noreferrer"
+    <button
+      type="button"
+      class="work-intro-visual work-intro-visual--featured work-intro-visual-zoom"
+      data-image-open
+      data-image-src={tacticImage}
+      data-image-title="Tactic Studio"
+      data-image-alt="Tactic Studio — AR and VR project showcase"
+      aria-label="View larger image: Tactic Studio"
     >
       <img
         src={tacticImage}
@@ -25,7 +29,8 @@ const splatticUrl = 'https://www.splattic.com/';
         loading="eager"
         decoding="async"
       />
-    </a>
+      <StillZoomBadge />
+    </button>
     <div class="work-intro-copy">
       <p class="work-intro-label">Studio</p>
       <h3 class="work-intro-title">
@@ -39,11 +44,14 @@ const splatticUrl = 'https://www.splattic.com/';
   </article>
 
   <article class="work-intro-block work-intro-block--splattic reveal" style="--reveal-delay: 80ms">
-    <a
-      class="work-intro-visual work-intro-visual--featured"
-      href={splatticUrl}
-      target="_blank"
-      rel="noopener noreferrer"
+    <button
+      type="button"
+      class="work-intro-visual work-intro-visual--featured work-intro-visual-zoom"
+      data-image-open
+      data-image-src={splatticImage}
+      data-image-title="Splattic"
+      data-image-alt="Splattic — AR/VR/XR workflow web app"
+      aria-label="View larger image: Splattic"
     >
       <img
         src={splatticImage}
@@ -53,7 +61,8 @@ const splatticUrl = 'https://www.splattic.com/';
         loading="eager"
         decoding="async"
       />
-    </a>
+      <StillZoomBadge />
+    </button>
     <div class="work-intro-copy">
       <p class="work-intro-label">Current</p>
       <h3 class="work-intro-title">

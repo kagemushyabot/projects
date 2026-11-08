@@ -52,8 +52,19 @@ export const WATER_PANEL_ID = 'water-is-life-hidden-dangers-vr-campaign';
 export const PAIR_HERO_FEATURE_IDS = new Set([
   'facebook-spaces',
   'google-play-music-panorama-festival-nyc-2016',
+  'google-next-opening-keynote-2017',
   WATER_PANEL_ID,
 ]);
+
+export const SOLO_ROW_PANEL_IDS = [
+  'mission-to-the-deep-exhibit',
+  'marvel-mighty-heroes-mobile-game',
+  'floathybrid-entertainment-sf',
+] as const;
+
+const MYVR_TITLE_RE = /\bmy\s*vr\s*app\b/i;
+const MARVEL_PANEL_ID = 'marvel-mighty-heroes-mobile-game';
+export const MARVEL_YOUTUBE_ID = 'DjZyFg5CHIs';
 
 export const EVIL_EYE_PEARL_CAPTION =
   'Directed by Patrick Osborne. A father and daughter travel the country in their hatchback, chasing their dreams — Google Spotlight Stories’ “Pearl” for 360°, VR, and theatrical release. Academy Award nominee, Best Animated Short Film (2017).';
@@ -382,6 +393,48 @@ export interface EvilEyeCurateReport {
   panelsMergedIntoOne: number;
 }
 
+export interface GalleryLayoutReport {
+  myvrPanelsRemoved: number;
+}
+
+function isMyvrAppPanel(p: GalleryProject): boolean {
+  if (p.id === 'myvr-app') return true;
+  if (MYVR_TITLE_RE.test(p.title)) return true;
+  return p.images.some((img) => imageBasename(img.src) === 'myvr_web.jpg');
+}
+
+function removeMyvrAppPanel(projects: GalleryProject[]): { projects: GalleryProject[]; removed: number } {
+  const before = projects.length;
+  const filtered = projects.filter((p) => !isMyvrAppPanel(p));
+  return { projects: filtered, removed: before - filtered.length };
+}
+
+function curateSoloRowSequence(projects: GalleryProject[]): GalleryProject[] {
+  const soloOrder = [...SOLO_ROW_PANEL_IDS];
+  const soloSet = new Set<string>(soloOrder);
+  const picked = soloOrder
+    .map((id) => projects.find((p) => p.id === id))
+    .filter((p): p is GalleryProject => Boolean(p));
+  if (picked.length !== soloOrder.length) return projects;
+  const rest = projects.filter((p) => !soloSet.has(p.id));
+  const evilIdx = rest.findIndex((p) => p.id === EVIL_EYE_PANEL_ID);
+  const insertAt = evilIdx >= 0 ? evilIdx + 1 : rest.length;
+  return [...rest.slice(0, insertAt), ...picked, ...rest.slice(insertAt)];
+}
+
+function normalizeMarvelYoutube(projects: GalleryProject[]): GalleryProject[] {
+  return projects.map((p) => {
+    if (p.id !== MARVEL_PANEL_ID && !normalizeTitle(p.title).includes('marvel mighty heroes')) {
+      return p;
+    }
+    const videos =
+      p.videos.length > 0
+        ? p.videos.map((v) => ({ ...v, youtubeId: MARVEL_YOUTUBE_ID }))
+        : [{ youtubeId: MARVEL_YOUTUBE_ID }];
+    return { ...p, videos };
+  });
+}
+
 function curateEvilEyePicturesPanel(projects: GalleryProject[]): {
   projects: GalleryProject[];
   evilEyeReport: EvilEyeCurateReport;
@@ -459,6 +512,7 @@ let galleryCache: {
   projects: GalleryProject[];
   dedupeReport: DedupeReportEntry[];
   evilEyeReport: EvilEyeCurateReport;
+  layoutReport: GalleryLayoutReport;
 } | null = null;
 
 export function resetPortfolioGalleryCache(): void {
@@ -469,6 +523,7 @@ export function buildPortfolioGallery(): {
   projects: GalleryProject[];
   dedupeReport: DedupeReportEntry[];
   evilEyeReport: EvilEyeCurateReport;
+  layoutReport: GalleryLayoutReport;
 } {
   if (galleryCache) return galleryCache;
   const raw: (GalleryProject & { keys: string[] })[] = [];
@@ -517,10 +572,17 @@ export function buildPortfolioGallery(): {
     .filter((p) => !(p.images.length === 0 && p.videos.length === 0))
     .filter((p) => !/^(animation|resume|miscellaneous)$/i.test(p.title.trim()));
 
+  const { projects: withoutMyvr, removed: myvrPanelsRemoved } = removeMyvrAppPanel(projects);
+  projects = withoutMyvr;
+
   const { projects: curated, evilEyeReport } = curateEvilEyePicturesPanel(projects);
-  projects = curated.map((p, i) => {
+  projects = normalizeMarvelYoutube(curateSoloRowSequence(curated));
+  const layoutReport: GalleryLayoutReport = { myvrPanelsRemoved };
+
+  projects = projects.map((p, i) => {
+    const soloRow = (SOLO_ROW_PANEL_IDS as readonly string[]).includes(p.id);
     let layout =
-      p.id === EVIL_EYE_PANEL_ID || PAIR_HERO_FEATURE_IDS.has(p.id)
+      p.id === EVIL_EYE_PANEL_ID || PAIR_HERO_FEATURE_IDS.has(p.id) || soloRow
         ? ('feature' as const)
         : p.layout === 'compact'
           ? LAYOUT_CYCLE[i % LAYOUT_CYCLE.length]
@@ -537,6 +599,6 @@ export function buildPortfolioGallery(): {
     });
   }
 
-  galleryCache = { projects, dedupeReport, evilEyeReport };
+  galleryCache = { projects, dedupeReport, evilEyeReport, layoutReport };
   return galleryCache;
 }

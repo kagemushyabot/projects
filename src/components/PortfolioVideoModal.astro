@@ -71,6 +71,8 @@
     }
 
     function openModal(youtubeId, title, trigger) {
+      var imageOpen = document.querySelector('[data-image-modal]:not([hidden])');
+      if (imageOpen) return;
       lastFocus = trigger;
       if (titleEl) titleEl.textContent = title || 'Video';
       if (frameHost) {

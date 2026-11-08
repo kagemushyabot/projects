@@ -34,12 +34,14 @@ async function auditViewport(page, label) {
     for (const panel of document.querySelectorAll('.gallery-item')) {
       const grid = panel.querySelector('[data-media-grid][data-mixed-panel]');
       if (!grid) continue;
-      const stills = [...grid.querySelectorAll('.gallery-image img, .gallery-image--hero-frame img')];
+      const stills = [
+        ...grid.querySelectorAll('.gallery-still-open img, .gallery-image img, .gallery-image--hero-frame img'),
+      ];
       const vids = [...grid.querySelectorAll('.gallery-video-thumb')];
       if (!stills.length || !vids.length) continue;
 
       const pairs = [...grid.querySelectorAll('[data-media-pair]')].map((pair) => {
-        const still = pair.querySelector('.gallery-image img, .gallery-evil-eye-pair-still img');
+        const still = pair.querySelector('.gallery-still-open img, .gallery-image img, .gallery-evil-eye-pair-still img');
         const vid = pair.querySelector('.gallery-video-thumb');
         const stillBox = rect(still);
         const vidBox = rect(vid);
@@ -114,6 +116,7 @@ async function auditViewport(page, label) {
       'water-is-life-hidden-dangers-vr-campaign',
       'facebook-spaces',
       'google-play-music-panorama-festival-nyc-2016',
+      'google-next-opening-keynote-2017',
       'evil-eye-pictures-san-francisco',
     ];
     const out = {};
@@ -126,7 +129,7 @@ async function auditViewport(page, label) {
       panel.scrollIntoView({ block: 'center', behavior: 'instant' });
       await sleep(350);
       const heroStill = panel.querySelector('.gallery-card-media--pair-hero .gallery-image--hero-frame img');
-      const spotlight = panel.querySelector('.gallery-evil-eye-spotlight .gallery-image img');
+      const spotlight = panel.querySelector('.gallery-evil-eye-spotlight-band img, .gallery-evil-eye-spotlight img');
       const pearlImg = panel.querySelector('.gallery-evil-eye-pair--pearl .gallery-image img');
       const onIceImg = panel.querySelector('.gallery-evil-eye-pair--on-ice .gallery-image img');
       await waitImg(heroStill || pearlImg || spotlight);
