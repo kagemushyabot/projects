@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer-core';
 import { mkdir } from 'node:fs/promises';
+import { writeFileSync, readFileSync } from 'node:fs';
 
 const outDir = process.argv[2];
 const origin = process.env.PREVIEW_ORIGIN || 'http://127.0.0.1:4321';
@@ -68,42 +69,79 @@ await new Promise((r) => setTimeout(r, 250));
 await page.screenshot({ path: `${outDir}/work-exp-intro-top.png`, fullPage: false });
 await page.screenshot({ path: `${outDir}/work-exp-gallery-compact.png` });
 
+async function viewportShotBox(getBox) {
+  await new Promise((r) => setTimeout(r, 400));
+  const box = await page.evaluate(getBox);
+  if (!box || box.height < 40) return null;
+  return page.screenshot({
+    encoding: 'base64',
+    clip: {
+      x: Math.max(0, box.x),
+      y: Math.max(0, box.y),
+      width: Math.min(box.width, 1440),
+      height: box.height,
+    },
+  });
+}
+
 if (await page.$('#water-is-life-hidden-dangers-vr-campaign')) {
-  const clip = await page.evaluate(() => {
-    const water = document.getElementById('water-is-life-hidden-dangers-vr-campaign');
-    const onIce = document.getElementById('on-ice');
-    const onIceHero = onIce?.querySelector('.gallery-spotlight-film__hero');
-    const pad = 12;
-    const docTop = (el) => {
-      if (!el) return 0;
-      const r = el.getBoundingClientRect();
-      return r.top + window.scrollY;
-    };
-    const docBottom = (el) => {
-      if (!el) return 0;
-      const r = el.getBoundingClientRect();
-      return r.bottom + window.scrollY;
-    };
-    const start = docTop(water);
-    const endBottom = docBottom(onIceHero) || docBottom(onIce) || start + 900;
+  await page.evaluate(() => {
+    document.getElementById('water-is-life-hidden-dangers-vr-campaign')?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  });
+  const waterB64 = await viewportShotBox(() => {
+    const el = document.getElementById('water-is-life-hidden-dangers-vr-campaign');
+    const r = el.getBoundingClientRect();
+    return { x: 0, y: Math.max(0, r.y - 8), width: 1440, height: r.height + 16 };
+  });
+
+  await page.evaluate(() => {
     document.getElementById('on-ice')?.scrollIntoView({ block: 'end', behavior: 'instant' });
+  });
+  const bandB64 = await viewportShotBox(() => {
+    const band = document.getElementById('google-spotlight-stories-group');
+    const onIce = document.getElementById('on-ice');
+    if (!band || !onIce) return null;
+    const r1 = band.getBoundingClientRect();
+    const r2 = onIce.getBoundingClientRect();
+    const top = Math.min(r1.y, r2.y);
     return {
-      startY: Math.max(0, start - pad),
-      endBottom,
-      pad,
+      x: 0,
+      y: Math.max(0, top - 8),
+      width: 1440,
+      height: Math.min(2600, r2.bottom - top + 24),
     };
   });
-  await new Promise((r) => setTimeout(r, 450));
-  const clipRect = {
-    x: 0,
-    y: clip.startY,
-    width: 1440,
-    height: Math.min(2400, Math.max(400, clip.endBottom - clip.startY + clip.pad * 2)),
-  };
-  await page.screenshot({
-    path: `${outDir}/work-exp-gallery-pearl-group.png`,
-    clip: clipRect,
-  });
+
+  if (waterB64 && bandB64) {
+    const stitched = await page.evaluate(
+      async (a, b, gap) => {
+        const load = (src) =>
+          new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+          });
+        const imgA = await load(`data:image/png;base64,${a}`);
+        const imgB = await load(`data:image/png;base64,${b}`);
+        const w = Math.max(imgA.width, imgB.width);
+        const h = imgA.height + gap + imgB.height;
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#050508';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(imgA, 0, 0);
+        ctx.drawImage(imgB, 0, imgA.height + gap);
+        return canvas.toDataURL('image/png').split(',')[1];
+      },
+      waterB64,
+      bandB64,
+      10,
+    );
+    writeFileSync(`${outDir}/work-exp-gallery-pearl-group.png`, Buffer.from(stitched, 'base64'));
+  }
 }
 
 const videoTile = await page.$('[data-video-open]');
