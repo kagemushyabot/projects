@@ -14,6 +14,15 @@ export interface GalleryVideo {
   label?: string;
 }
 
+export interface GalleryMediaSlot {
+  kind: 'image' | 'video';
+  src?: string;
+  youtubeId?: string;
+  alt?: string;
+  /** Verified English copy (HTML with <strong>) shown under still images */
+  captionHtml?: string;
+}
+
 export interface GalleryProject {
   id: string;
   title: string;
@@ -24,7 +33,29 @@ export interface GalleryProject {
   sources: PortfolioSource[];
   layout: 'compact' | 'wide' | 'tall' | 'feature';
   mergedFrom: string[];
+  /** Curated L→R media order for Evil Eye Spotlight cluster */
+  mediaSlots?: GalleryMediaSlot[];
 }
+
+export const EVIL_EYE_PANEL_ID = 'evil-eye-pictures-san-francisco';
+export const WATER_PANEL_ID = 'water-is-life-hidden-dangers-vr-campaign';
+
+export const EVIL_EYE_PEARL_CAPTION_HTML =
+  '<strong>Directed by Patrick Osborne.</strong> A father and daughter travel the country in their hatchback, chasing their dreams — Google Spotlight Stories’ “Pearl” for 360°, VR, and theatrical release. <strong>Academy Award nominee, Best Animated Short Film (2017).</strong>';
+
+export const EVIL_EYE_ON_ICE_CAPTION_HTML =
+  '<strong>Directed by Shannon Tindle.</strong> A Google Spotlight Stories VR short about an extravagant ice show and its star performer interrupted by an unlikely interloper. <strong>Annie Award nominee, Best Animated Short Subject (43rd Annie Awards, 2016).</strong>';
+
+export const EVIL_EYE_COPY_SOURCES = {
+  pearl: [
+    'https://blog.google/products-and-platforms/products/atap/making-pearl/',
+    'https://evileyepictures.com/work/pearl/',
+  ],
+  onIce: [
+    'https://variety.com/2016/digital/news/google-spotlight-stories-virtual-reality-on-ice-1201699131/',
+    'https://evileyepictures.com/work/on-ice/',
+  ],
+} as const;
 
 export interface DedupeReportEntry {
   canonicalId: string;
@@ -98,6 +129,72 @@ function isObsoleteNavChunk(html: string): boolean {
   return hasLegacyNavLink;
 }
 
+const SPOTLIGHT_COMPOUND_IMAGES = ['image1.jpeg', 'image3.jpeg', 'image4.jpeg'] as const;
+
+function imageBasename(src: string): string {
+  return (src.split('/').pop() || src).split('?')[0];
+}
+
+function extractParagraphContaining(html: string, needle: string): string {
+  const idx = html.indexOf(needle);
+  if (idx === -1) return '';
+  const start = html.lastIndexOf('<p', idx);
+  const end = html.indexOf('</p>', idx);
+  if (start === -1 || end === -1) return '';
+  return html.slice(start, end + 4);
+}
+
+function extractYoutubeParagraph(html: string, youtubeId: string): string {
+  const marker = `embed/${youtubeId}`;
+  const idx = html.indexOf(marker);
+  if (idx === -1) return '';
+  const start = html.lastIndexOf('<p', idx);
+  const end = html.indexOf('</p>', idx);
+  if (start === -1 || end === -1) return '';
+  return html.slice(start, end + 4);
+}
+
+/** `movies.html` opens with a single chunk bundling Spotlight + PEARL + ON ICE without h3 titles. */
+function expandSpotlightMoviesChunk(chunk: string): string[] {
+  const basenames = new Set(
+    [...chunk.matchAll(/\/assets\/wp-import\/([^"'?#\s]+)/gi)].map((m) => m[1].split('?')[0]),
+  );
+  const isCompound = SPOTLIGHT_COMPOUND_IMAGES.every((name) => basenames.has(name));
+  if (!isCompound || /<h3[^>]*>[\s\S]*PEARL/i.test(chunk)) {
+    return [chunk];
+  }
+
+  const creditBlock = chunk.match(/<h4[\s\S]*?evileyepictures\.com[\s\S]*?<\/h4>/i)?.[0];
+
+  const spotlight = [
+    '<h3 style="text-align:center;">Google Spotlight Stories</h3>',
+    extractParagraphContaining(chunk, 'image1.jpeg'),
+    extractParagraphContaining(chunk, '<strong>Worked as TD generalist</strong>'),
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const pearl = [
+    '<h3 style="text-align:center;"><span style="color:#ffcc00;">PEARL</span></h3>',
+    extractParagraphContaining(chunk, 'image3.jpeg'),
+    extractYoutubeParagraph(chunk, 'JrkslAhyOVc'),
+    '<p style="text-align:center;"><strong>Worked as TD generalist</strong></p>',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const onIce = [
+    '<h3 style="text-align:center;"><span style="color:#ffcc00;"><strong>ON ICE</strong></span></h3>',
+    extractParagraphContaining(chunk, 'image4.jpeg'),
+    extractYoutubeParagraph(chunk, '0cYI8AXkC2I'),
+    creditBlock ?? '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  return [spotlight, pearl, onIce].map((c) => c.trim()).filter((c) => c.length > 40);
+}
+
 function splitChunks(html: string, stripHero: boolean): string[] {
   let cleaned = html.trim();
   if (stripHero) {
@@ -106,16 +203,28 @@ function splitChunks(html: string, stripHero: boolean): string[] {
       '',
     );
   }
-  return cleaned
+  const chunks = cleaned
     .split(/(?:<hr\s*\/?>\s*){2,}/i)
     .map((p) => p.trim())
     .filter(Boolean);
+  return chunks.flatMap((chunk) => expandSpotlightMoviesChunk(chunk));
+}
+
+function extractTitleFromHtml(html: string): string {
+  for (const m of html.matchAll(/<h3[^>]*>([\s\S]*?)<\/h3>/gi)) {
+    const text = stripTags(m[1]);
+    if (text.length > 3) return text;
+  }
+  for (const m of html.matchAll(/<h4[^>]*>([\s\S]*?)<\/h4>/gi)) {
+    const text = stripTags(m[1]);
+    if (text.length > 8 && !/iframe/i.test(m[0])) return text;
+  }
+  const fallback = stripTags(html).slice(0, 80);
+  return fallback || 'Untitled project';
 }
 
 function parseChunk(html: string, source: PortfolioSource): Omit<GalleryProject, 'id' | 'layout' | 'mergedFrom'> & { keys: string[] } {
-  const titleMatch = html.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
-  const titleRaw = titleMatch ? stripTags(titleMatch[1]) : stripTags(html).slice(0, 80);
-  const title = titleRaw || 'Untitled project';
+  const title = extractTitleFromHtml(html);
 
   const creditMatch = html.match(/<h4[^>]*>[\s\S]*?<a[^>]+>([^<]+)<\/a>/i);
   const creditAlt = html.match(/<h4[^>]*>([^<]{3,120})<\/h4>/i);
@@ -164,8 +273,26 @@ function parseChunk(html: string, source: PortfolioSource): Omit<GalleryProject,
   return { title, credit, notes: notes.slice(0, 3), images, videos, sources: [source], keys };
 }
 
+const CANONICAL_DISPLAY_TITLES: Record<string, string> = {
+  pearl: 'PEARL',
+  'on ice': 'ON ICE',
+  'google spotlight stories': 'Google Spotlight Stories',
+};
+
+function pickMergedTitle(a: string, b: string): string {
+  const aNorm = normalizeTitle(a);
+  const bNorm = normalizeTitle(b);
+  if (CANONICAL_DISPLAY_TITLES[aNorm]) return CANONICAL_DISPLAY_TITLES[aNorm];
+  if (CANONICAL_DISPLAY_TITLES[bNorm]) return CANONICAL_DISPLAY_TITLES[bNorm];
+  const aBad = /worked as td generalist/i.test(a) || a.length > 48;
+  const bBad = /worked as td generalist/i.test(b) || b.length > 48;
+  if (aBad && !bBad) return b;
+  if (bBad && !aBad) return a;
+  return a.length >= b.length ? a : b;
+}
+
 function mergeProjects(a: GalleryProject, b: GalleryProject, mergedKey: string): GalleryProject {
-  const title = a.title.length >= b.title.length ? a.title : b.title;
+  const title = pickMergedTitle(a.title, b.title);
   const images: GalleryImage[] = [];
   const seen = new Set<string>();
   for (const img of [...a.images, ...b.images]) {
@@ -197,6 +324,18 @@ function mergeProjects(a: GalleryProject, b: GalleryProject, mergedKey: string):
   };
 }
 
+function isSpotlightCompoundProject(p: GalleryProject): boolean {
+  const names = new Set(p.images.map((i) => imageBasename(i.src)));
+  return SPOTLIGHT_COMPOUND_IMAGES.every((name) => names.has(name));
+}
+
+function isEvilEyeClusterProject(p: GalleryProject): boolean {
+  const t = normalizeTitle(p.title);
+  if (t === 'pearl' || t === 'on ice' || t === 'google spotlight stories') return true;
+  if (p.id === 'pearl' || p.id === 'on-ice') return true;
+  return isSpotlightCompoundProject(p);
+}
+
 function shouldMerge(a: GalleryProject, b: GalleryProject): string | null {
   const aKeys = new Set<string>();
   const bKeys = new Set<string>();
@@ -204,25 +343,123 @@ function shouldMerge(a: GalleryProject, b: GalleryProject): string | null {
   for (const v of b.videos) bKeys.add(`yt:${v.youtubeId}`);
   const aTitle = normalizeTitle(a.title);
   const bTitle = normalizeTitle(b.title);
+  const distinctSpotlight =
+    new Set([aTitle, bTitle]).has('pearl') && new Set([aTitle, bTitle]).has('on ice');
+  if (distinctSpotlight) return null;
   if (aTitle && aTitle === bTitle) return `title:${aTitle}`;
   for (const k of aKeys) {
     if (bKeys.has(k)) return k;
   }
+  if (isSpotlightCompoundProject(a) || isSpotlightCompoundProject(b)) {
+    if (aTitle !== bTitle && aTitle !== 'pearl' && bTitle !== 'pearl') return null;
+  }
   if (aTitle.length > 8 && bTitle.length > 8 && (aTitle.includes(bTitle) || bTitle.includes(aTitle))) {
-    const aImg = new Set(a.images.map((i) => i.src.split('/').pop()));
-    const shared = b.images.some((i) => aImg.has(i.src.split('/').pop()));
+    const aImg = new Set(a.images.map((i) => imageBasename(i.src)));
+    const shared = b.images.some((i) => aImg.has(imageBasename(i.src)));
     if (shared) return `title-sub:${aTitle}|${bTitle}`;
   }
   return null;
 }
 
-let galleryCache: { projects: GalleryProject[]; dedupeReport: DedupeReportEntry[] } | null = null;
+export interface EvilEyeCurateReport {
+  absorbedPanelIds: string[];
+  duplicateStandalonePearlRemoved: number;
+  panelsMergedIntoOne: number;
+}
+
+function curateEvilEyePicturesPanel(projects: GalleryProject[]): {
+  projects: GalleryProject[];
+  evilEyeReport: EvilEyeCurateReport;
+} {
+  const absorbed = projects.filter(isEvilEyeClusterProject);
+  if (!absorbed.length) {
+    return {
+      projects,
+      evilEyeReport: {
+        absorbedPanelIds: [],
+        duplicateStandalonePearlRemoved: 0,
+        panelsMergedIntoOne: 0,
+      },
+    };
+  }
+
+  const hadStandalonePearl = absorbed.some(
+    (p) => normalizeTitle(p.title) === 'pearl' && p.id === 'pearl',
+  );
+
+  const mediaSlots: GalleryMediaSlot[] = [
+    {
+      kind: 'image',
+      src: '/assets/wp-import/image1.jpeg',
+      alt: 'Google Spotlight Stories',
+    },
+    {
+      kind: 'video',
+      youtubeId: 'WqCH4DNQBUA',
+      alt: 'Pearl — Google Spotlight Stories',
+    },
+    {
+      kind: 'image',
+      src: '/assets/wp-import/image3.jpeg',
+      alt: 'Pearl still',
+      captionHtml: EVIL_EYE_PEARL_CAPTION_HTML,
+    },
+    {
+      kind: 'video',
+      youtubeId: '0cYI8AXkC2I',
+      alt: 'On Ice — Google Spotlight Stories',
+    },
+    {
+      kind: 'image',
+      src: '/assets/wp-import/image4.jpeg',
+      alt: 'On Ice still',
+      captionHtml: EVIL_EYE_ON_ICE_CAPTION_HTML,
+    },
+  ];
+
+  const evilEye: GalleryProject = {
+    id: EVIL_EYE_PANEL_ID,
+    title: 'Evil Eye Pictures, San Francisco',
+    credit: 'Google Spotlight Stories — Pearl & On Ice',
+    notes: [],
+    images: [],
+    videos: [],
+    sources: [...new Set(absorbed.flatMap((p) => p.sources))],
+    layout: 'feature',
+    mergedFrom: absorbed.map((p) => p.id),
+    mediaSlots,
+  };
+
+  const rest = projects.filter((p) => !absorbed.includes(p));
+  const waterIdx = rest.findIndex((p) => p.id === WATER_PANEL_ID);
+  const insertAt = waterIdx >= 0 ? waterIdx + 1 : rest.length;
+  const ordered = [...rest.slice(0, insertAt), evilEye, ...rest.slice(insertAt)];
+
+  return {
+    projects: ordered,
+    evilEyeReport: {
+      absorbedPanelIds: absorbed.map((p) => p.id),
+      duplicateStandalonePearlRemoved: hadStandalonePearl ? 1 : 0,
+      panelsMergedIntoOne: Math.max(0, absorbed.length - 1),
+    },
+  };
+}
+
+let galleryCache: {
+  projects: GalleryProject[];
+  dedupeReport: DedupeReportEntry[];
+  evilEyeReport: EvilEyeCurateReport;
+} | null = null;
 
 export function resetPortfolioGalleryCache(): void {
   galleryCache = null;
 }
 
-export function buildPortfolioGallery(): { projects: GalleryProject[]; dedupeReport: DedupeReportEntry[] } {
+export function buildPortfolioGallery(): {
+  projects: GalleryProject[];
+  dedupeReport: DedupeReportEntry[];
+  evilEyeReport: EvilEyeCurateReport;
+} {
   if (galleryCache) return galleryCache;
   const raw: (GalleryProject & { keys: string[] })[] = [];
   let idx = 0;
@@ -268,12 +505,28 @@ export function buildPortfolioGallery(): { projects: GalleryProject[]; dedupeRep
 
   projects = projects
     .filter((p) => !(p.images.length === 0 && p.videos.length === 0))
-    .filter((p) => !/^(animation|resume|miscellaneous)$/i.test(p.title.trim()))
-    .map((p, i) => ({
-      ...p,
-      layout: LAYOUT_CYCLE[i % LAYOUT_CYCLE.length],
-    }));
+    .filter((p) => !/^(animation|resume|miscellaneous)$/i.test(p.title.trim()));
 
-  galleryCache = { projects, dedupeReport };
+  const { projects: curated, evilEyeReport } = curateEvilEyePicturesPanel(projects);
+  projects = curated.map((p, i) => ({
+    ...p,
+    layout:
+      p.id === EVIL_EYE_PANEL_ID
+        ? ('feature' as const)
+        : p.layout === 'compact'
+          ? LAYOUT_CYCLE[i % LAYOUT_CYCLE.length]
+          : p.layout,
+  }));
+
+  if (evilEyeReport.absorbedPanelIds.length) {
+    dedupeReport.push({
+      canonicalId: EVIL_EYE_PANEL_ID,
+      title: 'Evil Eye Pictures, San Francisco',
+      mergedKeys: evilEyeReport.absorbedPanelIds.map((id) => `panel:${id}`),
+      sources: ['presentation', 'movies'],
+    });
+  }
+
+  galleryCache = { projects, dedupeReport, evilEyeReport };
   return galleryCache;
 }

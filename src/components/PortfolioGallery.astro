@@ -1,5 +1,5 @@
 ---
-import { buildPortfolioGallery } from '../utils/portfolioGallery';
+import { buildPortfolioGallery, EVIL_EYE_PANEL_ID } from '../utils/portfolioGallery';
 import { assetUrl } from '../utils/paths';
 import PortfolioVideoModal from './PortfolioVideoModal.astro';
 
@@ -20,7 +20,12 @@ function thumbSrc(youtubeId: string) {
         return (
         <li
           id={project.id}
-          class:list={['gallery-item', 'reveal', `gallery-item--${project.layout}`]}
+          class:list={[
+            'gallery-item',
+            'reveal',
+            `gallery-item--${project.layout}`,
+            project.id === EVIL_EYE_PANEL_ID && 'gallery-item--evil-eye',
+          ]}
           style={`--reveal-delay: ${(index % 10) * 35}ms`}
         >
           <article class="gallery-card">
@@ -29,54 +34,108 @@ function thumbSrc(youtubeId: string) {
               {project.credit && <p class="gallery-card-credit">{project.credit}</p>}
             </header>
 
-            {(project.videos.length > 0 || project.images.length > 0) && (
-              <div class="gallery-card-media" data-media-grid>
+            {project.mediaSlots && project.mediaSlots.length > 0 ? (
+              <div class="gallery-card-media gallery-card-media--evil-eye" data-media-grid>
                 {
-                  project.videos.map((video) => (
-                    <button
-                      type="button"
-                      class="gallery-video-thumb"
-                      data-video-open
-                      data-youtube-id={video.youtubeId}
-                      data-video-title={project.title}
-                      aria-label={`Play video: ${project.title}`}
-                    >
-                      <img
-                        src={thumbSrc(video.youtubeId)}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        width="320"
-                        height="180"
-                      />
-                      <span class="gallery-video-badge" aria-hidden="true">
-                        <svg class="gallery-video-play-icon" viewBox="0 0 24 24" focusable="false">
-                          <path d="M8 5v14l12-7z" fill="currentColor" />
-                        </svg>
-                      </span>
-                    </button>
-                  ))
-                }
-                {
-                  visibleImages.map((img) => (
-                    <figure class="gallery-image gallery-image--still">
-                      <img
-                        src={assetUrl(img.src)}
-                        alt={img.alt}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </figure>
-                  ))
-                }
-                {
-                  extraImages > 0 && (
-                    <p class="gallery-more-media" aria-label={`${extraImages} more images in this project`}>
-                      +{extraImages}
-                    </p>
+                  project.mediaSlots.map((slot) =>
+                    slot.kind === 'video' && slot.youtubeId ? (
+                      <div class="gallery-evil-eye-slot gallery-evil-eye-slot--video">
+                        <button
+                          type="button"
+                          class="gallery-video-thumb"
+                          data-video-open
+                          data-youtube-id={slot.youtubeId}
+                          data-video-title={slot.alt ?? project.title}
+                          aria-label={`Play video: ${slot.alt ?? project.title}`}
+                        >
+                          <img
+                            src={thumbSrc(slot.youtubeId)}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            width="320"
+                            height="180"
+                          />
+                          <span class="gallery-video-badge" aria-hidden="true">
+                            <svg class="gallery-video-play-icon" viewBox="0 0 24 24" focusable="false">
+                              <path d="M8 5v14l12-7z" fill="currentColor" />
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        class:list={[
+                          'gallery-evil-eye-slot',
+                          slot.captionHtml && 'gallery-evil-eye-slot--still',
+                        ]}
+                      >
+                        <figure class="gallery-image gallery-image--still gallery-image--evil-eye-hero">
+                          <img
+                            src={assetUrl(slot.src ?? '')}
+                            alt={slot.alt ?? ''}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </figure>
+                        {slot.captionHtml && (
+                          <p class="gallery-evil-eye-caption" set:html={slot.captionHtml} />
+                        )}
+                      </div>
+                    ),
                   )
                 }
               </div>
+            ) : (
+              (project.videos.length > 0 || project.images.length > 0) && (
+                <div class="gallery-card-media" data-media-grid>
+                  {
+                    project.videos.map((video) => (
+                      <button
+                        type="button"
+                        class="gallery-video-thumb"
+                        data-video-open
+                        data-youtube-id={video.youtubeId}
+                        data-video-title={project.title}
+                        aria-label={`Play video: ${project.title}`}
+                      >
+                        <img
+                          src={thumbSrc(video.youtubeId)}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          width="320"
+                          height="180"
+                        />
+                        <span class="gallery-video-badge" aria-hidden="true">
+                          <svg class="gallery-video-play-icon" viewBox="0 0 24 24" focusable="false">
+                            <path d="M8 5v14l12-7z" fill="currentColor" />
+                          </svg>
+                        </span>
+                      </button>
+                    ))
+                  }
+                  {
+                    visibleImages.map((img) => (
+                      <figure class="gallery-image gallery-image--still">
+                        <img
+                          src={assetUrl(img.src)}
+                          alt={img.alt}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </figure>
+                    ))
+                  }
+                  {
+                    extraImages > 0 && (
+                      <p class="gallery-more-media" aria-label={`${extraImages} more images in this project`}>
+                        +{extraImages}
+                      </p>
+                    )
+                  }
+                </div>
+              )
             )}
 
             {

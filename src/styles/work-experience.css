@@ -399,6 +399,112 @@
   margin: 0 0 0.15rem;
 }
 
+/* Evil Eye Pictures — single panel, L→R media (Spotlight → Pearl → On Ice) */
+.gallery-item.gallery-item--evil-eye {
+  grid-column: 1 / -1;
+}
+
+.gallery-card-media--evil-eye {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+  grid-template-columns: unset;
+  min-height: auto;
+}
+
+.gallery-evil-eye-slot {
+  flex: 1 1 12.5rem;
+  min-width: min(100%, 12.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.gallery-evil-eye-slot--still {
+  flex: 1.35 1 14rem;
+  min-width: min(100%, 14rem);
+}
+
+.gallery-evil-eye-slot--video {
+  flex: 1 1 12rem;
+  min-width: min(100%, 12rem);
+}
+
+.gallery-evil-eye-slot--video .gallery-video-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  min-height: 8.75rem;
+}
+
+.gallery-evil-eye-slot--video .gallery-video-thumb img {
+  object-fit: cover;
+}
+
+.gallery-image--evil-eye-hero {
+  aspect-ratio: auto;
+  width: 100%;
+  min-height: 8.75rem;
+}
+
+.gallery-image--evil-eye-hero img {
+  width: 100%;
+  height: auto;
+  min-height: 8.75rem;
+  max-height: 13.4375rem;
+  object-fit: contain;
+  object-position: center;
+  background: #0a0a0c;
+}
+
+.gallery-evil-eye-caption {
+  margin: 0;
+  padding: 0 0.1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.gallery-evil-eye-caption strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (min-width: 720px) {
+  .gallery-item.gallery-item--evil-eye {
+    grid-column: 1 / -1;
+  }
+
+  .gallery-card-media--evil-eye {
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  .gallery-evil-eye-slot:first-child {
+    flex: 0 1 15rem;
+    max-width: 16.5rem;
+  }
+
+  .gallery-evil-eye-slot--video {
+    flex: 0 1 13.5rem;
+    max-width: 15.5rem;
+  }
+
+  .gallery-evil-eye-slot--still {
+    flex: 1 1 14.5rem;
+    max-width: 18rem;
+  }
+
+  .gallery-evil-eye-slot--video .gallery-video-thumb {
+    min-height: 10.15rem;
+  }
+
+  .gallery-image--evil-eye-hero img {
+    min-height: 10.15rem;
+    max-height: 13.4375rem;
+  }
+}
+
 .gallery-more-media {
   margin: 0;
   display: flex;
