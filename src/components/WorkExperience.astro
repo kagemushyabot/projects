@@ -1,88 +1,28 @@
 ---
-import { homeWorkPillars } from '../data/homeWork';
+import HomeChaosCollage from './HomeChaosCollage.astro';
 import { withBase, workExperienceHref } from '../utils/paths';
 
 const resumeHref = withBase('/resume/');
 const workHref = workExperienceHref();
-
-function mediaSrc(item: (typeof homeWorkPillars)[number]['media'][number]) {
-  if (item.kind === 'video') {
-    return `https://img.youtube.com/vi/${item.src}/mqdefault.jpg`;
-  }
-  return withBase(item.src);
-}
 ---
 
 <section class="work-xp" aria-labelledby="work-xp-heading">
   <header class="work-xp-head reveal">
-    <p class="work-xp-kicker">Portfolio · 01 — 03</p>
+    <p class="work-xp-kicker">Selected work</p>
     <h2 id="work-xp-heading" class="work-xp-title">
       <a href={workHref}>Work experience</a>
     </h2>
     <p class="work-xp-lead">
-      Commercial AR/VR, heritage laser-scan modeling, and real-time animation — media-first previews
-      linking into the full editorial portfolio page.
+      A living collage of credits from the unified gallery — same project names and media as the full
+      work experience page.
     </p>
-    <a class="work-xp-all" href={workHref}>
-      View full work experience
-      <span aria-hidden="true"> →</span>
-    </a>
   </header>
 
-  <div class="work-xp-grid">
-    {
-      homeWorkPillars.map((pillar, index) => {
-        const href = pillar.path;
-        return (
-          <article
-            class={`work-pillar work-pillar--${pillar.slug} reveal`}
-            style={`--reveal-delay: ${120 + index * 90}ms`}
-          >
-            <div class="work-pillar-copy">
-              <span class="work-pillar-num" aria-hidden="true">
-                {pillar.num}
-              </span>
-              <h3 class="work-pillar-heading">
-                <a href={href}>{pillar.label}</a>
-              </h3>
-              <p class="work-pillar-desc">{pillar.description}</p>
-              <a class="work-pillar-cta" href={href}>
-                View {pillar.label}
-                <span class="work-pillar-cta-arrow" aria-hidden="true">
-                  →
-                </span>
-              </a>
-            </div>
-
-            <a class={`work-pillar-media work-pillar-media--${pillar.layout}`} href={href} aria-label={`Open ${pillar.label} portfolio`}>
-              {
-                pillar.media.map((item) => (
-                  <figure
-                    class:list={[
-                      'media-tile',
-                      item.span === 'feature' && 'media-tile--feature',
-                      item.span === 'wide' && 'media-tile--wide',
-                      item.kind === 'video' && 'media-tile--video',
-                    ]}
-                  >
-                    <img src={mediaSrc(item)} alt="" loading="lazy" decoding="async" />
-                    {item.kind === 'video' && (
-                      <span class="media-tile-play" aria-hidden="true">
-                        ▶
-                      </span>
-                    )}
-                    <figcaption class="sr-only">{item.alt}</figcaption>
-                  </figure>
-                ))
-              }
-            </a>
-          </article>
-        );
-      })
-    }
+  <div class="work-xp-chaos reveal" style="--reveal-delay: 80ms">
+    <HomeChaosCollage />
   </div>
 
-  <aside class="resume-tease reveal" style="--reveal-delay: 420ms">
+  <aside class="resume-tease reveal" style="--reveal-delay: 200ms">
     <p class="resume-tease-label">Also on this site</p>
     <a class="resume-tease-link" href={resumeHref}>
       <span class="resume-tease-title">resume</span>

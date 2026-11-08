@@ -1,0 +1,133 @@
+---
+import { buildHomeChaosCollageItems } from '../utils/homeChaosCollage';
+import { assetUrl, workExperienceHref } from '../utils/paths';
+
+const items = buildHomeChaosCollageItems();
+const workHref = workExperienceHref();
+
+function imgSrc(src: string) {
+  return src.startsWith('http') ? src : assetUrl(src);
+}
+---
+
+<div class="chaos-collage" data-chaos-collage>
+  <div class="chaos-collage-stage" data-chaos-stage>
+    <div class="chaos-collage-cloud" data-chaos-cloud aria-hidden="true">
+      {
+        items.map((item, index) => (
+          <figure
+            class="chaos-chip"
+            data-chaos-chip
+            data-project-id={item.projectId}
+            style={`--chip-i: ${index}; --chip-seed: ${(index * 17 + 3) % 97}`}
+          >
+            <img
+              src={imgSrc(item.src)}
+              alt=""
+              loading={index < 10 ? 'eager' : 'lazy'}
+              decoding="async"
+              width="320"
+              height="180"
+            />
+            <figcaption class="chaos-chip-label">{item.title}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="chaos-collage-ui">
+    <p class="chaos-collage-count" aria-live="polite">
+      {items.length} projects from the work gallery
+    </p>
+    <button type="button" class="chaos-collage-pause" data-chaos-pause aria-pressed="false">
+      Pause motion
+    </button>
+    <a class="chaos-collage-all" href={workHref}>
+      View full work experience
+      <span aria-hidden="true"> →</span>
+    </a>
+  </div>
+</div>
+
+<script is:inline define:vars={{ chipCount: items.length }}>
+  (function () {
+    var stage = document.querySelector('[data-chaos-stage]');
+    var cloud = document.querySelector('[data-chaos-cloud]');
+    var pauseBtn = document.querySelector('[data-chaos-pause]');
+    if (!stage || !cloud) return;
+
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var chips = cloud.querySelectorAll('[data-chaos-chip]');
+    var paused = false;
+    var raf = 0;
+    var start = performance.now();
+
+    function seededLayout(index, total) {
+      var cols = 5;
+      var col = index % cols;
+      var row = Math.floor(index / cols);
+      var left = 4 + col * 18 + ((index * 13) % 9);
+      var top = 4 + row * 22 + ((index * 7) % 8);
+      var scale = 0.78 + ((index * 11) % 28) / 100;
+      var z = 1 + (index % 6);
+      var rot = -8 + ((index * 19) % 16);
+      return { left: left, top: top, scale: scale, z: z, rot: rot };
+    }
+
+    chips.forEach(function (chip, i) {
+      var lay = seededLayout(i, chips.length);
+      chip.style.setProperty('--chip-left', lay.left + '%');
+      chip.style.setProperty('--chip-top', lay.top + '%');
+      chip.style.setProperty('--chip-scale', String(lay.scale));
+      chip.style.setProperty('--chip-z', String(lay.z));
+      chip.style.setProperty('--chip-rot', lay.rot + 'deg');
+      chip.dataset.layoutLeft = String(lay.left);
+      chip.dataset.layoutTop = String(lay.top);
+    });
+
+    if (reduced) {
+      cloud.classList.add('chaos-collage-cloud--static');
+      stage.classList.add('chaos-collage-stage--static');
+      if (pauseBtn) pauseBtn.hidden = true;
+      return;
+    }
+
+    function motionFrame(now) {
+      if (paused) return;
+      var t = (now - start) / 1000;
+      chips.forEach(function (chip, i) {
+        var phase = (i * 0.91 + 0.3) % (Math.PI * 2);
+        var driftX = Math.sin(t * 0.35 + phase) * 2.2;
+        var driftY = Math.cos(t * 0.28 + phase * 1.1) * 1.8;
+        var rot = parseFloat(chip.style.getPropertyValue('--chip-rot')) || 0;
+        var wobble = Math.sin(t * 0.22 + phase) * 2;
+        chip.style.setProperty('--chip-dx', driftX + '%');
+        chip.style.setProperty('--chip-dy', driftY + '%');
+        chip.style.setProperty('--chip-drot', wobble + 'deg');
+        var breathe = 0.68 + 0.32 * (0.5 + 0.5 * Math.sin(t * 0.45 + phase * 1.7));
+        chip.style.setProperty('--chip-opacity', String(breathe));
+      });
+      raf = requestAnimationFrame(motionFrame);
+    }
+
+    cloud.classList.add('chaos-collage-cloud--motion');
+    raf = requestAnimationFrame(motionFrame);
+
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', function () {
+        paused = !paused;
+        pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+        pauseBtn.textContent = paused ? 'Resume motion' : 'Pause motion';
+        stage.classList.toggle('chaos-collage-stage--paused', paused);
+        if (!paused) {
+          start = performance.now();
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(motionFrame);
+        } else {
+          cancelAnimationFrame(raf);
+        }
+      });
+    }
+  })();
+</script>
