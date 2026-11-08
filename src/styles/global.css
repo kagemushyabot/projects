@@ -338,8 +338,9 @@ body.is-resume .resume-job h3 strong {
   color: var(--text);
 }
 
-/* Named projects / brands — same emphasis as Pearl & On Ice */
-body.is-resume .resume-accent-name {
+/* Named projects / brands + full award nomination phrases */
+body.is-resume .resume-accent-name,
+body.is-resume .resume-accent-nomination {
   font-size: 1.125rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -391,7 +392,8 @@ body.is-resume main a:hover {
     color: #0b4f8a !important;
   }
 
-  body.is-resume .resume-accent-name {
+  body.is-resume .resume-accent-name,
+  body.is-resume .resume-accent-nomination {
     color: #6b4528 !important;
   }
 

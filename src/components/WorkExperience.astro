@@ -1,5 +1,5 @@
 ---
-import HomePageFlip from './HomePageFlip.astro';
+import HomeStillSlideshow from './HomeStillSlideshow.astro';
 import { withBase, workExperienceHref } from '../utils/paths';
 
 const resumeHref = withBase('/resume/');
@@ -13,13 +13,12 @@ const workHref = workExperienceHref();
       <a href={workHref}>Work experience</a>
     </h2>
     <p class="work-xp-lead">
-      One project at a time from the unified gallery — same names and media as the full work experience
-      page, with a physical page-turn preview.
+      Stills from the unified gallery — same wp-import assets as work experience, without video poster frames.
     </p>
   </header>
 
-  <div class="work-xp-flip reveal" style="--reveal-delay: 80ms">
-    <HomePageFlip />
+  <div class="work-xp-slideshow reveal" style="--reveal-delay: 80ms">
+    <HomeStillSlideshow />
   </div>
 
   <aside class="resume-tease reveal" style="--reveal-delay: 200ms">

@@ -1,0 +1,138 @@
+---
+import { buildHomeStillSlideshowItems } from '../utils/homeChaosCollage';
+import { assetUrl } from '../utils/paths';
+
+const items = buildHomeStillSlideshowItems();
+const initial = items[0];
+const initialSrc = initial ? (initial.src.startsWith('http') ? initial.src : assetUrl(initial.src)) : '';
+---
+
+<div class="home-slideshow" data-home-slideshow>
+  <div class="home-slideshow-stage" data-slideshow-stage>
+    {
+      initial && (
+        <img
+          data-slideshow-img
+          src={initialSrc}
+          alt=""
+          decoding="async"
+          width="640"
+          height="400"
+        />
+      )
+    }
+  </div>
+  <div class="home-slideshow-controls">
+    <button type="button" class="home-slideshow-pause" data-slideshow-pause aria-pressed="false">
+      Pause
+    </button>
+  </div>
+</div>
+
+<script is:inline define:vars={{ slideshowItems: items.map((i) => ({ ...i, src: i.src.startsWith('http') ? i.src : assetUrl(i.src) })) }}>
+  (function () {
+    var root = document.querySelector('[data-home-slideshow]');
+    var stage = document.querySelector('[data-slideshow-stage]');
+    var img = document.querySelector('[data-slideshow-img]');
+    var pauseBtn = document.querySelector('[data-slideshow-pause]');
+    if (!root || !stage || !img || !slideshowItems.length) return;
+
+    var INTERVAL_MS = 1000;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var paused = false;
+    var timer = 0;
+    var tickStarts = [];
+    var order = slideshowItems.map(function (_, i) {
+      return i;
+    });
+    var idx = 0;
+
+    root.dataset.slideshowIntervalMs = String(INTERVAL_MS);
+    root.dataset.slideshowCount = String(slideshowItems.length);
+
+    function shuffle(arr) {
+      for (var i = arr.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = arr[i];
+        arr[i] = arr[j];
+        arr[j] = t;
+      }
+      return arr;
+    }
+    shuffle(order);
+
+    function preloadAll(done) {
+      var pending = slideshowItems.length;
+      if (!pending) {
+        done();
+        return;
+      }
+      slideshowItems.forEach(function (item) {
+        var im = new Image();
+        im.decoding = 'async';
+        im.onload = im.onerror = function () {
+          pending -= 1;
+          if (pending <= 0) done();
+        };
+        im.src = item.src;
+      });
+    }
+
+    function recordTick() {
+      var t = performance.now();
+      tickStarts.push(t);
+      if (tickStarts.length > 24) tickStarts.shift();
+      root.dataset.lastTickStart = String(t);
+    }
+
+    function showAtOrderPos(pos) {
+      var item = slideshowItems[order[pos % order.length]];
+      if (!item) return;
+      recordTick();
+      img.src = item.src;
+      root.dataset.currentProject = item.projectId;
+    }
+
+    function advance() {
+      if (paused || reduced) return;
+      idx = (idx + 1) % order.length;
+      showAtOrderPos(idx);
+    }
+
+    function startTimer() {
+      window.clearInterval(timer);
+      if (reduced || paused) return;
+      timer = window.setInterval(advance, INTERVAL_MS);
+    }
+
+    function stopTimer() {
+      window.clearInterval(timer);
+      timer = 0;
+    }
+
+    if (reduced) {
+      root.classList.add('home-slideshow--reduced');
+      pauseBtn.hidden = true;
+      recordTick();
+      return;
+    }
+
+    pauseBtn.addEventListener('click', function () {
+      paused = !paused;
+      pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+      pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+      root.classList.toggle('home-slideshow--paused', paused);
+      if (paused) stopTimer();
+      else startTimer();
+    });
+
+    preloadAll(function () {
+      recordTick();
+      startTimer();
+    });
+
+    root.getSlideshowTickStarts = function () {
+      return tickStarts.slice();
+    };
+  })();
+</script>
