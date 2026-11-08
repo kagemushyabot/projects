@@ -1,0 +1,221 @@
+---
+import { buildHomeChaosCollageItems } from '../utils/homeChaosCollage';
+import { assetUrl, workExperienceHref } from '../utils/paths';
+
+const items = buildHomeChaosCollageItems();
+const workHref = workExperienceHref();
+
+function imgSrc(src: string) {
+  return src.startsWith('http') ? src : assetUrl(src);
+}
+
+const initial = items[0];
+const initialSrc = initial ? imgSrc(initial.src) : '';
+---
+
+<div class="home-flip" data-home-flip>
+  <div class="home-flip-stage" data-flip-stage>
+    <div class="home-flip-viewport">
+      <div class="home-flip-sheet" data-flip-sheet>
+        <div class="home-flip-face home-flip-face--front" data-flip-face="front">
+          <div class="home-flip-art">
+            {
+              initial && (
+                <img
+                  data-flip-img-front
+                  src={initialSrc}
+                  alt=""
+                  decoding="async"
+                  width="640"
+                  height="400"
+                />
+              )
+            }
+          </div>
+        </div>
+        <div class="home-flip-face home-flip-face--back" data-flip-face="back" aria-hidden="true">
+          <div class="home-flip-art">
+            <img data-flip-img-back alt="" decoding="async" width="640" height="400" />
+          </div>
+        </div>
+      </div>
+      <div class="home-flip-spine" aria-hidden="true"></div>
+    </div>
+    <p class="home-flip-project" data-flip-title>
+      {initial?.title ?? ''}
+    </p>
+  </div>
+
+  <div class="home-flip-ui">
+    <p class="home-flip-count" aria-live="polite">
+      {items.length} projects · page flip preview
+    </p>
+    <div class="home-flip-controls">
+      <button type="button" class="home-flip-manual" data-flip-prev aria-label="Previous project">
+        Prev
+      </button>
+      <button type="button" class="home-flip-pause" data-flip-pause aria-pressed="false">
+        Pause motion
+      </button>
+      <button type="button" class="home-flip-manual" data-flip-next aria-label="Next project">
+        Next
+      </button>
+    </div>
+    <a class="home-flip-all" href={workHref}>
+      View full work experience
+      <span aria-hidden="true"> →</span>
+    </a>
+  </div>
+</div>
+
+<script is:inline define:vars={{ flipItems: items.map((i) => ({ ...i, src: imgSrc(i.src) })) }}>
+  (function () {
+    var root = document.querySelector('[data-home-flip]');
+    var sheet = document.querySelector('[data-flip-sheet]');
+    var imgFront = document.querySelector('[data-flip-img-front]');
+    var imgBack = document.querySelector('[data-flip-img-back]');
+    var titleEl = document.querySelector('[data-flip-title]');
+    var pauseBtn = document.querySelector('[data-flip-pause]');
+    var prevBtn = document.querySelector('[data-flip-prev]');
+    var nextBtn = document.querySelector('[data-flip-next]');
+    if (!root || !sheet || !imgFront || !imgBack || !titleEl || !flipItems.length) return;
+
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var FLIP_MS = 820;
+    var AUTO_MS = 3400;
+    var paused = false;
+    var flipping = false;
+    var timer = 0;
+    var order = flipItems.map(function (_, i) {
+      return i;
+    });
+    var seqPtr = 0;
+
+    function shuffle(arr) {
+      for (var i = arr.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = arr[i];
+        arr[i] = arr[j];
+        arr[j] = t;
+      }
+      return arr;
+    }
+    shuffle(order);
+
+    function projectAt(seqIndex) {
+      return flipItems[order[seqIndex % order.length]];
+    }
+
+    function preloadAll() {
+      flipItems.forEach(function (item) {
+        var im = new Image();
+        im.decoding = 'async';
+        im.src = item.src;
+      });
+    }
+    preloadAll();
+
+    function setFace(img, project) {
+      img.src = project.src;
+      img.alt = project.title;
+    }
+
+    function applyResting(seqIndex) {
+      var current = projectAt(seqIndex);
+      setFace(imgFront, current);
+      titleEl.textContent = current.title;
+      sheet.classList.remove('home-flip-sheet--turned');
+      sheet.dataset.flipAngle = '0';
+      sheet.dataset.resting = 'true';
+      root.dataset.currentProject = current.projectId;
+      root.dataset.currentTitle = current.title;
+    }
+
+    function prepareBack(seqIndex) {
+      setFace(imgBack, projectAt(seqIndex));
+    }
+
+    seqPtr = 0;
+    applyResting(seqPtr);
+    prepareBack(seqPtr + 1);
+
+    function snapAfterTurn(nextSeq) {
+      seqPtr = nextSeq % order.length;
+      var current = projectAt(seqPtr);
+      setFace(imgFront, current);
+      titleEl.textContent = current.title;
+      sheet.classList.remove('home-flip-sheet--turned', 'home-flip-sheet--animating');
+      sheet.dataset.flipAngle = '0';
+      sheet.dataset.resting = 'true';
+      root.dataset.currentProject = current.projectId;
+      root.dataset.currentTitle = current.title;
+      prepareBack(seqPtr + 1);
+      flipping = false;
+    }
+
+    function runFlip(direction) {
+      if (flipping) return;
+      flipping = true;
+      sheet.dataset.resting = 'false';
+      var nextSeq = seqPtr + (direction < 0 ? order.length - 1 : 1);
+      prepareBack(nextSeq);
+      sheet.classList.add('home-flip-sheet--animating');
+      sheet.dataset.flipAngle = '180';
+      requestAnimationFrame(function () {
+        sheet.classList.add('home-flip-sheet--turned');
+      });
+      window.setTimeout(function () {
+        snapAfterTurn(nextSeq);
+      }, FLIP_MS);
+    }
+
+    function scheduleAuto() {
+      window.clearTimeout(timer);
+      if (reduced || paused) return;
+      timer = window.setTimeout(function () {
+        runFlip(1);
+        scheduleAuto();
+      }, AUTO_MS);
+    }
+
+    if (reduced) {
+      root.classList.add('home-flip--reduced');
+      if (pauseBtn) pauseBtn.hidden = true;
+      prevBtn.hidden = false;
+      nextBtn.hidden = false;
+      prevBtn.addEventListener('click', function () {
+        if (flipping) return;
+        seqPtr = (seqPtr + order.length - 1) % order.length;
+        applyResting(seqPtr);
+        prepareBack(seqPtr + 1);
+      });
+      nextBtn.addEventListener('click', function () {
+        if (flipping) return;
+        seqPtr = (seqPtr + 1) % order.length;
+        applyResting(seqPtr);
+        prepareBack(seqPtr + 1);
+      });
+      return;
+    }
+
+    prevBtn.hidden = true;
+    nextBtn.hidden = true;
+
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', function () {
+        paused = !paused;
+        pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+        pauseBtn.textContent = paused ? 'Resume motion' : 'Pause motion';
+        root.classList.toggle('home-flip--paused', paused);
+        if (paused) window.clearTimeout(timer);
+        else scheduleAuto();
+      });
+    }
+
+    scheduleAuto();
+
+    root.runFlipForTest = function (dir) {
+      runFlip(dir || 1);
+    };
+  })();
+</script>

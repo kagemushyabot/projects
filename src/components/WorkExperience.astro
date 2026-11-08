@@ -1,5 +1,5 @@
 ---
-import HomeChaosCollage from './HomeChaosCollage.astro';
+import HomePageFlip from './HomePageFlip.astro';
 import { withBase, workExperienceHref } from '../utils/paths';
 
 const resumeHref = withBase('/resume/');
@@ -13,13 +13,13 @@ const workHref = workExperienceHref();
       <a href={workHref}>Work experience</a>
     </h2>
     <p class="work-xp-lead">
-      A living collage of credits from the unified gallery — same project names and media as the full
-      work experience page.
+      One project at a time from the unified gallery — same names and media as the full work experience
+      page, with a physical page-turn preview.
     </p>
   </header>
 
-  <div class="work-xp-chaos reveal" style="--reveal-delay: 80ms">
-    <HomeChaosCollage />
+  <div class="work-xp-flip reveal" style="--reveal-delay: 80ms">
+    <HomePageFlip />
   </div>
 
   <aside class="resume-tease reveal" style="--reveal-delay: 200ms">

@@ -25,7 +25,7 @@ const browser = await puppeteer.launch({
 });
 
 const page = await browser.newPage();
-await page.setViewport({ width: 1440, height: 900 });
+await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
 
 await page.goto(baseUrl, { waitUntil: 'networkidle2', timeout: 90000 });
 await page.evaluate(() => document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible')));
@@ -115,12 +115,21 @@ async function screenshotMissionRefRegion() {
   }
 
   const shotPath = path.join(outDir, 'work-exp-mission-left-align-desktop.png');
+  const mHandle = await page.$(`#${MISSION_ID}`);
+  const rHandle = await page.$(`#${REF_ID}`);
+  if (!mHandle || !rHandle) throw new Error('panel handles missing');
+  const mb = await mHandle.boundingBox();
+  const rb = await rHandle.boundingBox();
+  if (!mb || !rb) throw new Error('panel bounding boxes missing');
+  const clipTop = Math.max(0, Math.floor(Math.min(mb.y, rb.y) - 4));
+  const clipBottom = Math.ceil(Math.max(mb.y + mb.height, rb.y + rb.height) + 6);
+  const clipHeight = Math.min(900 - clipTop, clipBottom - clipTop);
   await page.screenshot({
     path: shotPath,
-    clip: { x: 0, y: top, width: 1440, height },
+    clip: { x: 0, y: clipTop, width: 1440, height: clipHeight },
   });
 
-  return { clip: { x: 0, y: top, width: 1440, height }, panels: valid };
+  return { clip: { x: 0, y: clipTop, width: 1440, height: clipHeight }, panels: valid };
 }
 
 const tacticInView = await page.evaluate(() => {

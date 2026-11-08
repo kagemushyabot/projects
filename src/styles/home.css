@@ -403,97 +403,133 @@
   color: var(--text-secondary);
 }
 
-/* Home chaos collage */
-.work-xp-chaos {
+/* Home page-flip stage */
+.work-xp-flip {
   margin: 0 0 0.5rem;
 }
 
-.chaos-collage {
+.home-flip {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  position: relative;
+  z-index: 1;
 }
 
-.chaos-collage-stage {
+.home-flip-stage {
+  border: 1px solid var(--border);
+  background: linear-gradient(165deg, rgb(8 8 10 / 0.96), rgb(4 4 5 / 0.9));
+  padding: clamp(0.85rem, 2.5vw, 1.15rem);
+  overflow: hidden;
+}
+
+.home-flip-viewport {
   position: relative;
+  perspective: 1400px;
+  perspective-origin: 12% 50%;
   width: 100%;
   max-width: 100%;
-  height: clamp(21rem, 58vh, 34rem);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: linear-gradient(165deg, rgb(8 8 10 / 0.95), rgb(4 4 5 / 0.88));
 }
 
-.chaos-collage-cloud {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  contain: layout style paint;
+.home-flip-sheet {
+  position: relative;
+  width: min(100%, 40rem);
+  margin: 0 auto 0 0;
+  min-height: clamp(12.5rem, 36vw, 18.5rem);
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transform: rotateY(0deg);
+  transition: transform 0.82s cubic-bezier(0.42, 0.12, 0.26, 1);
+  will-change: transform;
+  filter: drop-shadow(0 8px 24px rgb(0 0 0 / 0.35));
 }
 
-.chaos-chip {
-  position: absolute;
-  left: var(--chip-left, 8%);
-  top: var(--chip-top, 8%);
-  z-index: var(--chip-z, 1);
-  margin: 0;
-  width: clamp(6.25rem, 17vw, 10.5rem);
-  max-width: 42vw;
-  opacity: var(--chip-opacity, 0.9);
-  transform: translate3d(var(--chip-dx, 0), var(--chip-dy, 0), 0)
-    rotate(calc(var(--chip-rot, 0deg) + var(--chip-drot, 0deg))) scale(var(--chip-scale, 1));
-  transform-origin: center center;
-  pointer-events: none;
-  will-change: transform, opacity;
+.home-flip-sheet--turned {
+  transform: rotateY(-180deg);
 }
 
-.chaos-collage-stage--paused .chaos-chip {
+.home-flip--paused .home-flip-sheet {
   will-change: auto;
 }
 
-.chaos-chip img {
+.home-flip--reduced .home-flip-sheet,
+.home-flip--reduced .home-flip-sheet--turned {
+  transform: none;
+  transition: none;
+  filter: none;
+}
+
+.home-flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border: 1px solid var(--border-strong);
+  background: #0a0a0c;
+  overflow: hidden;
+}
+
+.home-flip-face--front {
+  position: relative;
+  transform: rotateY(0deg);
+}
+
+.home-flip-face--back {
+  transform: rotateY(180deg);
+}
+
+.home-flip--reduced .home-flip-face--back {
+  display: none;
+}
+
+.home-flip-art {
+  width: 100%;
+  height: 100%;
+  min-height: clamp(12.5rem, 36vw, 18.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0a0c;
+}
+
+.home-flip-art img {
   display: block;
   width: 100%;
-  height: auto;
-  min-height: 3.5rem;
-  max-height: 7.5rem;
+  height: 100%;
+  max-height: clamp(12.5rem, 36vw, 18.5rem);
   object-fit: contain;
   object-position: center;
   background: #0a0a0c;
-  border: 1px solid var(--border-strong);
 }
 
-.chaos-chip-label {
-  display: block;
-  margin: 0.2rem 0 0;
+.home-flip-spine {
+  position: absolute;
+  left: 0;
+  top: 8%;
+  bottom: 8%;
+  width: 3px;
+  background: linear-gradient(180deg, transparent, rgb(255 255 255 / 0.12), transparent);
+  pointer-events: none;
+}
+
+.home-flip-project {
+  margin: 0.65rem 0 0;
   padding: 0 0.1rem;
-  font-size: clamp(0.5rem, 1.6vw, 0.625rem);
-  line-height: 1.35;
+  font-size: clamp(0.8125rem, 2.2vw, 0.9375rem);
   font-weight: 600;
   letter-spacing: 0.03em;
-  color: var(--text);
   text-transform: lowercase;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--text);
+  line-height: 1.35;
 }
 
-.chaos-collage-cloud--static .chaos-chip {
-  --chip-opacity: 1;
-  transform: translate3d(0, 0, 0) rotate(var(--chip-rot, 0deg)) scale(var(--chip-scale, 1));
-}
-
-.chaos-collage-ui {
+.home-flip-ui {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.65rem 1.1rem;
-  position: relative;
-  z-index: 2;
+  gap: 0.65rem 1rem;
 }
 
-.chaos-collage-count {
+.home-flip-count {
   margin: 0;
   font-size: 0.6875rem;
   letter-spacing: 0.12em;
@@ -501,7 +537,14 @@
   color: var(--text-muted);
 }
 
-.chaos-collage-pause {
+.home-flip-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.home-flip-pause,
+.home-flip-manual {
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text);
@@ -512,35 +555,40 @@
   cursor: pointer;
 }
 
-.chaos-collage-pause:hover,
-.chaos-collage-pause:focus-visible {
+.home-flip-manual[hidden],
+.home-flip-pause[hidden] {
+  display: none;
+}
+
+.home-flip-pause:hover,
+.home-flip-pause:focus-visible,
+.home-flip-manual:hover,
+.home-flip-manual:focus-visible {
   border-color: var(--accent);
   outline: none;
 }
 
-.chaos-collage-all {
+.home-flip-all {
   margin-left: auto;
   font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent);
   text-decoration: none;
+  position: relative;
+  z-index: 2;
 }
 
-.chaos-collage-all:hover {
+.home-flip-all:hover {
   text-decoration: underline;
 }
 
 @media (max-width: 640px) {
-  .chaos-collage-stage {
-    height: clamp(19rem, 54vh, 26rem);
+  .home-flip-sheet {
+    width: 100%;
   }
 
-  .chaos-chip {
-    width: clamp(5.25rem, 40vw, 7.5rem);
-  }
-
-  .chaos-collage-all {
+  .home-flip-all {
     margin-left: 0;
     width: 100%;
   }
