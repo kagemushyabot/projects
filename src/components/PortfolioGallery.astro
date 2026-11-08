@@ -1,45 +1,12 @@
 ---
-import {
-  buildPortfolioGallery,
-  FEATURE_PROMOTE_IDS,
-  SPOTLIGHT_BAND_IDS,
-  SPOTLIGHT_GROUP_COPY,
-  type GalleryProject,
-} from '../utils/portfolioGallery';
+import { buildPortfolioGallery } from '../utils/portfolioGallery';
 import { assetUrl } from '../utils/paths';
 import PortfolioVideoModal from './PortfolioVideoModal.astro';
-import StillZoomBadge from './StillZoomBadge.astro';
 
 const { projects } = buildPortfolioGallery();
 
 function thumbSrc(youtubeId: string) {
   return `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
-}
-
-function isSpotlightBandAt(index: number): boolean {
-  return (
-    projects[index]?.id === SPOTLIGHT_BAND_IDS[0] &&
-    projects[index + 1]?.id === SPOTLIGHT_BAND_IDS[1] &&
-    projects[index + 2]?.id === SPOTLIGHT_BAND_IDS[2]
-  );
-}
-
-function maxImagesFor(project: GalleryProject): number {
-  if (project.layout === 'feature' || project.layout === 'spotlight-peer') return 14;
-  if (project.layout === 'wide') return 10;
-  if (project.layout === 'spotlight-lead') return 1;
-  return 8;
-}
-
-function eagerMedia(project: GalleryProject): boolean {
-  return (
-    project.id === SPOTLIGHT_BAND_IDS[0] ||
-    project.id === SPOTLIGHT_BAND_IDS[1] ||
-    project.id === SPOTLIGHT_BAND_IDS[2] ||
-    project.id === 'mission-to-the-deep-exhibit' ||
-    project.id === 'water-is-life-hidden-dangers-vr-campaign' ||
-    FEATURE_PROMOTE_IDS.includes(project.id as (typeof FEATURE_PROMOTE_IDS)[number])
-  );
 }
 ---
 
@@ -47,259 +14,82 @@ function eagerMedia(project: GalleryProject): boolean {
   <ul class="gallery-grid" role="list">
     {
       projects.map((project, index) => {
-        const spotlightLeadIndex = projects.findIndex((p) => p.id === SPOTLIGHT_BAND_IDS[0]);
-        if (
-          spotlightLeadIndex >= 0 &&
-          index > spotlightLeadIndex &&
-          index <= spotlightLeadIndex + 2
-        ) {
-          return null;
-        }
-
-        if (isSpotlightBandAt(index)) {
-          const band = projects.slice(index, index + 3);
-          const lead = band[0];
-          const films = band.slice(1).filter((p) => p.spotlightFilm);
-          const logo = lead.images[0];
-          return (
-            <li
-              id="google-spotlight-stories-group"
-              class="gallery-item gallery-item--spotlight-band reveal is-visible"
-              style={`--reveal-delay: ${(index % 10) * 35}ms`}
-            >
-              <article class="gallery-spotlight-group" data-spotlight-band>
-                <header class="gallery-spotlight-group__masthead">
-                  {
-                    logo && (
-                      <button
-                        type="button"
-                        class="work-intro-visual-zoom gallery-spotlight-group__logo"
-                        data-image-open
-                        data-image-src={assetUrl(logo.src)}
-                        data-image-title="Google Spotlight Stories"
-                        data-image-alt="Google Spotlight Stories"
-                        aria-label="View larger image: Google Spotlight Stories"
-                      >
-                        <img
-                          src={assetUrl(logo.src)}
-                          alt="Google Spotlight Stories"
-                          width="485"
-                          height="303"
-                          loading="eager"
-                          decoding="async"
-                          fetchpriority="high"
-                        />
-                        <StillZoomBadge />
-                      </button>
-                    )
-                  }
-                  <div class="gallery-spotlight-group__masthead-copy">
-                    <h2 class="gallery-spotlight-group__title">{SPOTLIGHT_GROUP_COPY.title}</h2>
-                    <p class="gallery-spotlight-group__lede">{SPOTLIGHT_GROUP_COPY.lede}</p>
-                    <p class="gallery-spotlight-group__jun">{SPOTLIGHT_GROUP_COPY.junContribution}</p>
-                  </div>
-                </header>
-
-                <div class="gallery-spotlight-group__films">
-                  {
-                    films.map((film) => {
-                      const meta = film.spotlightFilm!;
-                      const hero = film.images[0];
-                      return (
-                        <section
-                          id={film.id}
-                          class="gallery-spotlight-film"
-                          aria-labelledby={`${film.id}-heading`}
-                        >
-                          <header class="gallery-spotlight-film__head">
-                            <h3 id={`${film.id}-heading`} class="gallery-spotlight-film__title">
-                              {meta.filmTitle}
-                            </h3>
-                            <p class="gallery-spotlight-film__director">{meta.directorLabel}</p>
-                            <p class="gallery-spotlight-film__synopsis">{meta.synopsis}</p>
-                            {
-                              meta.filmHonors.length > 0 && (
-                                <ul class="gallery-spotlight-film__honors">
-                                  {meta.filmHonors.map((honor) => (
-                                    <li>{honor}</li>
-                                  ))}
-                                </ul>
-                              )
-                            }
-                          </header>
-
-                          {
-                            hero && (
-                              <button
-                                type="button"
-                                class="gallery-still-open gallery-still-open--hero gallery-spotlight-film__hero"
-                                data-film-hero
-                                data-image-open
-                                data-image-src={assetUrl(hero.src)}
-                                data-image-title={meta.filmTitle}
-                                data-image-alt={hero.alt}
-                                data-image-caption={meta.directorLabel}
-                                aria-label={`View larger image: ${meta.filmTitle}`}
-                              >
-                                <img
-                                  src={assetUrl(hero.src)}
-                                  alt={hero.alt}
-                                  loading="eager"
-                                  decoding="sync"
-                                  fetchpriority="high"
-                                />
-                                <StillZoomBadge />
-                              </button>
-                            )
-                          }
-
-                          {
-                            film.videos.length > 0 && (
-                              <div class="gallery-spotlight-film__videos" data-film-videos>
-                                {
-                                  film.videos.map((video) => (
-                                    <button
-                                      type="button"
-                                      class="gallery-video-thumb gallery-video-thumb--below-hero"
-                                      data-video-open
-                                      data-youtube-id={video.youtubeId}
-                                      data-video-title={meta.filmTitle}
-                                      aria-label={`Play video: ${meta.filmTitle}`}
-                                    >
-                                      <img
-                                        src={thumbSrc(video.youtubeId)}
-                                        alt=""
-                                        loading="eager"
-                                        decoding="async"
-                                        width="320"
-                                        height="180"
-                                      />
-                                      <span class="gallery-video-badge" aria-hidden="true">
-                                        <svg class="gallery-video-play-icon" viewBox="0 0 24 24" focusable="false">
-                                          <path d="M8 5v14l12-7z" fill="currentColor" />
-                                        </svg>
-                                      </span>
-                                    </button>
-                                  ))
-                                }
-                              </div>
-                            )
-                          }
-
-                          <p class="gallery-spotlight-film__jun">{meta.junContribution}</p>
-                        </section>
-                      );
-                    })
-                  }
-                </div>
-              </article>
-            </li>
-          );
-        }
-
-        const maxImages = maxImagesFor(project);
+        const maxImages = project.layout === 'feature' ? 14 : project.layout === 'wide' ? 10 : 8;
         const visibleImages = project.images.slice(0, maxImages);
         const extraImages = project.images.length - visibleImages.length;
-        const eager = eagerMedia(project);
-        const stackedFeature = project.layout === 'feature';
         return (
-          <li
-            id={project.id}
-            class:list={['gallery-item', 'reveal', `gallery-item--${project.layout}`]}
-            style={`--reveal-delay: ${(index % 10) * 35}ms`}
-          >
-            <article class="gallery-card">
-              <header class="gallery-card-head">
-                <h2 class="gallery-card-title">{project.title}</h2>
-                {project.credit && <p class="gallery-card-credit">{project.credit}</p>}
-              </header>
+        <li
+          id={project.id}
+          class:list={['gallery-item', 'reveal', `gallery-item--${project.layout}`]}
+          style={`--reveal-delay: ${(index % 10) * 35}ms`}
+        >
+          <article class="gallery-card">
+            <header class="gallery-card-head">
+              <h2 class="gallery-card-title">{project.title}</h2>
+              {project.credit && <p class="gallery-card-credit">{project.credit}</p>}
+            </header>
 
-              {(project.videos.length > 0 || project.images.length > 0) && (
-                <div
-                  class:list={[
-                    'gallery-card-media',
-                    stackedFeature && 'gallery-card-media--feature',
-                    stackedFeature && 'gallery-card-media--stacked',
-                  ]}
-                  data-media-grid
-                >
-                  {
-                    visibleImages.map((img) => (
-                      <button
-                        type="button"
-                        class:list={[
-                          'gallery-still-open',
-                          'gallery-image--still',
-                          stackedFeature && 'gallery-still-open--hero',
-                          stackedFeature && 'gallery-feature-hero',
-                        ]}
-                        data-image-open
-                        data-image-src={assetUrl(img.src)}
-                        data-image-title={project.title}
-                        data-image-alt={img.alt}
-                        aria-label={`View larger image: ${project.title}`}
-                      >
-                        <img
-                          src={assetUrl(img.src)}
-                          alt={img.alt}
-                          loading={eager ? 'eager' : 'lazy'}
-                          decoding={eager ? 'sync' : 'async'}
-                          fetchpriority={eager ? 'high' : undefined}
-                        />
-                        <StillZoomBadge />
-                      </button>
-                    ))
-                  }
-                  {
-                    project.videos.map((video) => (
-                      <button
-                        type="button"
-                        class:list={[
-                          'gallery-video-thumb',
-                          stackedFeature && 'gallery-video-thumb--below-hero',
-                        ]}
-                        data-video-open
-                        data-youtube-id={video.youtubeId}
-                        data-video-title={project.title}
-                        aria-label={`Play video: ${project.title}`}
-                      >
-                        <img
-                          src={thumbSrc(video.youtubeId)}
-                          alt=""
-                          loading={eager ? 'eager' : 'lazy'}
-                          decoding="async"
-                          width="320"
-                          height="180"
-                        />
-                        <span class="gallery-video-badge" aria-hidden="true">
-                          <svg class="gallery-video-play-icon" viewBox="0 0 24 24" focusable="false">
-                            <path d="M8 5v14l12-7z" fill="currentColor" />
-                          </svg>
-                        </span>
-                      </button>
-                    ))
-                  }
-                  {
-                    extraImages > 0 && (
-                      <p class="gallery-more-media" aria-label={`${extraImages} more images in this project`}>
-                        +{extraImages}
-                      </p>
-                    )
-                  }
-                </div>
-              )}
+            {(project.videos.length > 0 || project.images.length > 0) && (
+              <div class="gallery-card-media" data-media-grid>
+                {
+                  project.videos.map((video) => (
+                    <button
+                      type="button"
+                      class="gallery-video-thumb"
+                      data-video-open
+                      data-youtube-id={video.youtubeId}
+                      data-video-title={project.title}
+                      aria-label={`Play video: ${project.title}`}
+                    >
+                      <img
+                        src={thumbSrc(video.youtubeId)}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        width="320"
+                        height="180"
+                      />
+                      <span class="gallery-video-badge" aria-hidden="true">
+                        <svg class="gallery-video-play-icon" viewBox="0 0 24 24" focusable="false">
+                          <path d="M8 5v14l12-7z" fill="currentColor" />
+                        </svg>
+                      </span>
+                    </button>
+                  ))
+                }
+                {
+                  visibleImages.map((img) => (
+                    <figure class="gallery-image gallery-image--still">
+                      <img
+                        src={assetUrl(img.src)}
+                        alt={img.alt}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </figure>
+                  ))
+                }
+                {
+                  extraImages > 0 && (
+                    <p class="gallery-more-media" aria-label={`${extraImages} more images in this project`}>
+                      +{extraImages}
+                    </p>
+                  )
+                }
+              </div>
+            )}
 
-              {
-                project.notes.length > 0 && (
-                  <ul class="gallery-card-notes">
-                    {project.notes.map((note) => (
-                      <li>{note}</li>
-                    ))}
-                  </ul>
-                )
-              }
-            </article>
-          </li>
+            {
+              project.notes.length > 0 && (
+                <ul class="gallery-card-notes">
+                  {project.notes.map((note) => (
+                    <li>{note}</li>
+                  ))}
+                </ul>
+              )
+            }
+          </article>
+        </li>
         );
       })
     }

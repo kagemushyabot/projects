@@ -59,7 +59,7 @@
     function closeModal() {
       modal.setAttribute('hidden', '');
       modal.classList.remove('is-open');
-      document.body.classList.remove('portfolio-modal-open');
+      document.body.classList.remove('video-modal-open');
       unloadPlayer();
       document.removeEventListener('keydown', onKeydown);
       document.removeEventListener('keydown', trapFocus);
@@ -71,8 +71,6 @@
     }
 
     function openModal(youtubeId, title, trigger) {
-      var imageOpen = document.querySelector('[data-image-modal]:not([hidden])');
-      if (imageOpen) return;
       lastFocus = trigger;
       if (titleEl) titleEl.textContent = title || 'Video';
       if (frameHost) {
@@ -89,9 +87,7 @@
       }
       modal.removeAttribute('hidden');
       if (!reduced) modal.classList.add('is-open');
-      var imageOpen = document.querySelector('[data-image-modal]:not([hidden])');
-      if (imageOpen) return;
-      document.body.classList.add('portfolio-modal-open');
+      document.body.classList.add('video-modal-open');
       document.addEventListener('keydown', onKeydown);
       document.addEventListener('keydown', trapFocus);
       var closeBtn = modal.querySelector('.video-modal-close');
