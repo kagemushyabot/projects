@@ -10,6 +10,8 @@
   --accent-dim: #8f7350;
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --font-display: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
+  /* Sticky site header — scroll-padding / anchors clear the nav bar */
+  --site-header-offset: 4.5rem;
 }
 
 *,
@@ -20,6 +22,7 @@
 
 html {
   scroll-behavior: auto;
+  scroll-padding-top: var(--site-header-offset);
 }
 
 body {
@@ -54,8 +57,12 @@ img {
 }
 
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 90;
   border-bottom: 1px solid var(--border);
   padding: 1rem 1.5rem;
+  background-color: var(--bg);
 }
 
 .site-nav {
