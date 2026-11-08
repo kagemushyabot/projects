@@ -64,7 +64,7 @@ async function captureDesktop() {
       hasPearlNominee: /Oscar nominee|Academy Award nominee/i.test(text) && text.includes('Pearl'),
       hasOnIceNominee: /Annie Award nominee/i.test(text) && text.includes('On Ice'),
       disclaimerHits: disclaimerPatterns.filter((re) => re.test(text)).map(String),
-      pdfLink: !!document.querySelector('a[href*="Jun_Nagaoka_Resume_2027_v8.pdf"]'),
+      pdfLink: !!document.querySelector('a[href*="Jun_Nagaoka_Resume_2027.pdf"]'),
       overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       employers,
       hasTacticFirst: employers[0]?.includes('Tactic Studio'),

@@ -2,7 +2,8 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { withBase } from '../../utils/paths';
 
-const pdfHref = withBase('/assets/Jun_Nagaoka_Resume_2027_v8.pdf');
+const pdfHref = withBase('/assets/Jun_Nagaoka_Resume_2027.pdf');
+const pdfDownloadName = 'Jun_Nagaoka_Resume_2027.pdf';
 ---
 
 <BaseLayout title="resume" current="resume">
@@ -16,7 +17,7 @@ const pdfHref = withBase('/assets/Jun_Nagaoka_Resume_2027_v8.pdf');
       </p>
     </div>
 
-    <a class="resume-download" href={pdfHref} download>Download PDF (2027 v8)</a>
+    <a class="resume-download" href={pdfHref} download={pdfDownloadName}>Download PDF (2027)</a>
 
     <section class="resume-section">
       <h2>Professional Summary</h2>
