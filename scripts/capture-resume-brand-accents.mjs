@@ -69,23 +69,34 @@ async function scrollToHeading(text) {
   await new Promise((r) => setTimeout(r, 280));
 }
 
-async function shotTacticBrandsLi(filename) {
-  const box = await page.evaluate(() => {
-    const li = [...document.querySelectorAll('li')].find((el) => el.textContent?.includes('Selected projects:'));
-    if (!li || !li.querySelector('.resume-accent-name')) return null;
-    li.closest('.resume-job')?.scrollIntoView({ block: 'start', behavior: 'instant' });
-    const r = li.getBoundingClientRect();
+async function elementShot(filename, scrollAndFind) {
+  const handle = await page.evaluateHandle(scrollAndFind);
+  const el = handle.asElement();
+  if (!el) throw new Error(`element not found for ${filename}`);
+  await new Promise((r) => setTimeout(r, 350));
+  const probe = await el.evaluate((node) => {
+    const t = node.textContent || '';
     return {
-      x: Math.max(0, r.x - 8),
-      y: Math.max(0, r.y - 6),
-      width: r.width + 16,
-      height: r.height + 12,
+      hasAccent: !!node.querySelector('.resume-accent-name'),
+      textSample: t.slice(0, 120),
+      hasPearl: /\bPearl\b/.test(t),
+      hasCoca: t.includes('Coca-Cola'),
+      hasBlood: t.includes('Blood Brothers'),
+      hasTresors: t.includes('Trésors'),
     };
   });
-  if (!box) throw new Error('tactic brands clip failed');
-  await new Promise((r) => setTimeout(r, 200));
-  await page.screenshot({ path: path.join(outDir, filename), clip: box });
-  return box;
+  await el.screenshot({ path: path.join(outDir, filename) });
+  return probe;
+}
+
+async function shotTacticBrandsLi(filename) {
+  return elementShot(filename, () => {
+    const li = [...document.querySelectorAll('li')].find(
+      (el) => el.textContent?.includes('Selected projects:') && el.querySelector('.resume-accent-name'),
+    );
+    li?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    return li;
+  });
 }
 
 async function shotJobContains(headingNeedle, filename, mustIncludeText) {
@@ -121,86 +132,53 @@ async function shotJobContains(headingNeedle, filename, mustIncludeText) {
 }
 
 async function shotPearlRow(filename) {
-  const box = await page.evaluate(() => {
-    const pearl = [...document.querySelectorAll('.resume-accent-name')].find(
-      (el) => el.textContent?.trim() === 'Pearl',
+  const probe = await elementShot(filename, () => {
+    const job = [...document.querySelectorAll('.resume-job')].find((j) =>
+      j.querySelector('h3')?.textContent?.includes('Evil Eye'),
     );
-    const onIce = [...document.querySelectorAll('.resume-accent-name')].find(
-      (el) => el.textContent?.trim() === 'On Ice',
-    );
-    if (!pearl || !onIce) return null;
-    pearl.closest('.resume-job')?.scrollIntoView({ block: 'center', behavior: 'instant' });
-    const li0 = pearl.closest('li')?.getBoundingClientRect();
-    const li1 = onIce.closest('li')?.getBoundingClientRect();
-    if (!li0 || !li1) return null;
-    const top = Math.min(li0.top, li1.top) - 10;
-    const bottom = Math.max(li0.bottom, li1.bottom) + 10;
-    const job = pearl.closest('.resume-job');
-    const jr = job?.getBoundingClientRect();
-    const left = (jr?.left ?? li0.left) - 6;
-    const right = Math.max(li0.right, li1.right, jr?.right ?? 0) + 6;
-    return {
-      x: Math.max(0, left),
-      y: Math.max(0, top),
-      width: right - left,
-      height: bottom - top,
-    };
+    const ul = job?.querySelector('ul');
+    if (!ul?.querySelector('.resume-accent-name')) return null;
+    ul.scrollIntoView({ block: 'center', behavior: 'instant' });
+    return ul;
   });
-  if (!box) throw new Error('pearl row clip failed');
-  await new Promise((r) => setTimeout(r, 200));
-  await page.screenshot({ path: path.join(outDir, filename), clip: box });
-  return box;
+  if (!probe.hasPearl) throw new Error('pearl row missing Pearl');
+  return probe;
 }
 
 async function shotProjectsMontage(filename) {
-  const box = await page.evaluate(() => {
-    const bloodJob = [...document.querySelectorAll('.resume-job')].find((j) => {
-      const h = j.querySelector('h3')?.textContent || '';
-      return h.includes('DeNA West') && (j.querySelector('.dates')?.textContent || '').includes('December 2014');
-    });
-    const insightJob = [...document.querySelectorAll('.resume-job')].find((j) =>
-      j.querySelector('h3')?.textContent?.includes('Insight Digital, Emeryville'),
+  return elementShot(filename, () => {
+    const li = [...document.querySelectorAll('li')].find(
+      (el) => el.textContent?.includes('Trésors engloutis') && el.querySelector('.resume-accent-name'),
     );
-    if (!bloodJob || !insightJob) return null;
-    insightJob.scrollIntoView({ block: 'center', behavior: 'instant' });
-    const insightLi = [...insightJob.querySelectorAll('li')].find((li) =>
-      li.textContent?.includes('Trésors engloutis'),
-    );
-    if (!insightLi) return null;
-    bloodJob.scrollIntoView({ block: 'start', behavior: 'instant' });
-    const br = bloodJob.getBoundingClientRect();
-    const ir = insightLi.getBoundingClientRect();
-    const left = Math.min(br.left, ir.left) - 10;
-    const right = Math.max(br.right, ir.right) + 10;
-    const top = Math.min(br.top, ir.top) - 8;
-    const bottom = Math.max(br.bottom, ir.bottom) + 8;
-    const height = bottom - top;
-    if (height > 820) {
-      const jr = insightLi.getBoundingClientRect();
-      return {
-        x: Math.max(0, jr.x - 10),
-        y: Math.max(0, jr.y - 8),
-        width: jr.width + 20,
-        height: jr.height + 16,
-      };
-    }
-    return {
-      x: Math.max(0, left),
-      y: Math.max(0, top),
-      width: right - left,
-      height,
-    };
+    li?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    return li;
   });
-  if (!box) throw new Error('projects montage failed');
-  await new Promise((r) => setTimeout(r, 200));
-  await page.screenshot({ path: path.join(outDir, filename), clip: box });
-  return box;
 }
 
-await scrollToHeading('Tactic Studio');
-await shotTacticBrandsLi(`resume-accent-tactic-brands-${sha}.png`);
-await shotPearlRow(`resume-accent-pearl-row-${sha}.png`);
-await shotProjectsMontage(`resume-accent-projects-${sha}.png`);
+const tacticProbe = await shotTacticBrandsLi(`resume-accent-tactic-brands-${sha}.png`);
+if (!tacticProbe.hasCoca) throw new Error('tactic shot missing Coca-Cola');
+const pearlProbe = await shotPearlRow(`resume-accent-pearl-row-${sha}.png`);
+if (!pearlProbe.hasPearl) throw new Error('pearl shot validation failed');
+const projectsProbe = await shotProjectsMontage(`resume-accent-projects-${sha}.png`);
+if (!projectsProbe.hasTresors) throw new Error('projects shot missing Insight titles');
+
+const denaQa = await page.evaluate(() => {
+  const deNAJobs = [...document.querySelectorAll('.resume-job')].filter((j) =>
+    j.querySelector('h3')?.textContent?.includes('DeNA West'),
+  );
+  const decemberOnly = deNAJobs.some(
+    (j) => (j.querySelector('.dates')?.textContent || '').trim() === 'December 2014',
+  );
+  const surviving = deNAJobs[0];
+  return {
+    headingCount: deNAJobs.length,
+    december2014DeNABlock: decemberOnly,
+    survivingDateRange: surviving?.querySelector('.dates')?.textContent?.trim() || null,
+    mergedBulletTexts: surviving
+      ? [...surviving.querySelectorAll('li')].map((li) => li.textContent?.trim().replace(/\s+/g, ' '))
+      : [],
+  };
+});
 
 const byCategory = await page.evaluate(() => {
   function catFor(el) {
@@ -209,7 +187,7 @@ const byCategory = await page.evaluate(() => {
     if (h.includes('Tactic')) return 'tactic-brands';
     if (h.includes('Evil Eye')) return 'evil-eye-films';
     if (h.includes('DeNA')) return 'dena-titles';
-    if (h.includes('Insight Digital') && h.includes('Emeryville, CA')) return 'insight-recent';
+    if (h.includes('Insight Digital') && h.includes('CA')) return 'insight-recent';
     if (h.includes('Ntropic')) return 'ntropic';
     if (h.includes('Floathybrid')) return 'floathybrid';
     if (h.includes('Insight Digital') && !h.includes('CA')) return 'insight-earlier';
@@ -259,6 +237,13 @@ const metrics = {
   wrappedNames: byCategory.map((r) => r.text),
   categories,
   disclaimerHits,
+  denaQa,
+  december2014InPage: /December 2014/.test(pageText),
+  screenshots: {
+    tactic: tacticProbe,
+    pearl: pearlProbe,
+    projects: projectsProbe,
+  },
   selfCheck: {
     noDisclaimers: disclaimerHits.length === 0,
     pearlVisible: byCategory.some((r) => r.text === 'Pearl'),
@@ -268,6 +253,11 @@ const metrics = {
     insightEarlier: sampleCheck('insight-earlier'),
     blackPoint: sampleCheck('black-point'),
     mondo: sampleCheck('mondo'),
+    denaWestHeadings: denaQa.headingCount === 1,
+    noDecember2014DeNA: !denaQa.december2014DeNABlock && !/December 2014/.test(pageText),
+    tacticShotHasCoca: tacticProbe.hasCoca,
+    pearlShotHasPearl: pearlProbe.hasPearl,
+    projectsShotHasInsight: projectsProbe.hasTresors,
     allUniform:
       byCategory.length >= 20 &&
       byCategory.every(
@@ -280,6 +270,12 @@ const metrics = {
       disclaimerHits.length === 0 &&
       byCategory.length >= 20 &&
       byCategory.every((r) => r.text !== 'DeNA') &&
+      denaQa.headingCount === 1 &&
+      !denaQa.december2014DeNABlock &&
+      !/December 2014/.test(pageText) &&
+      tacticProbe.hasCoca &&
+      pearlProbe.hasPearl &&
+      projectsProbe.hasTresors &&
       sampleCheck('tactic-brands') &&
       sampleCheck('evil-eye-films'),
   },
