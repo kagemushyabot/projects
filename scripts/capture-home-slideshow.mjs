@@ -118,8 +118,12 @@ const metrics = {
     intervalNear1s: desktop.tail.mean != null && Math.abs(desktop.tail.mean - expectedInterval) <= 25,
     intervalUniform: desktop.tail.maxDev != null && desktop.tail.maxDev <= 30,
     noYoutubeInSlideshowSources: audit.included.every((s) => !s.src.includes('img.youtube.com')),
+    stillItemCountExpected: 19,
+    featuredIntroIds: ['work-intro-tactic-studio-featured', 'work-intro-splattic-featured'],
     excludedVideoOnlyCount: audit.excluded.length === 3,
+    itemCountOk: buildHomeStillSlideshowItems().length === 19,
     pass:
+      buildHomeStillSlideshowItems().length === 19 &&
       desktop.t0.imgCount === 1 &&
       desktop.t1.imgCount === 1 &&
       mobile.t0.imgCount === 1 &&

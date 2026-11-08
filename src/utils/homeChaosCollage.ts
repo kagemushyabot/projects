@@ -8,6 +8,22 @@ export interface HomeChaosCollageItem {
   alt: string;
 }
 
+/** Work Experience intro hero stills (same files as `WorkExperienceIntro.astro`). */
+export const HOME_WORK_INTRO_STILLS: HomeChaosCollageItem[] = [
+  {
+    projectId: 'work-intro-tactic-studio-featured',
+    title: 'Tactic Studio',
+    src: '/assets/work-intro/tactic-studio-featured.png',
+    alt: 'Tactic Studio featured',
+  },
+  {
+    projectId: 'work-intro-splattic-featured',
+    title: 'Splattic',
+    src: '/assets/work-intro/splattic-featured.png',
+    alt: 'Splattic featured',
+  },
+];
+
 /** Stills and wp-import paths only — never YouTube/Vimeo poster URLs. */
 export function pickStillVisual(project: GalleryProject): { src: string; alt: string } | null {
   if (project.id === EVIL_EYE_PANEL_ID && project.evilEyeLayout) {
@@ -26,6 +42,17 @@ export interface HomeSlideshowSourceAudit {
   excluded: { projectId: string; title: string; youtubeIds: string[] }[];
 }
 
+function appendIntroStills(items: HomeChaosCollageItem[]): HomeChaosCollageItem[] {
+  const seen = new Set(items.map((i) => i.src));
+  const out = [...items];
+  for (const intro of HOME_WORK_INTRO_STILLS) {
+    if (seen.has(intro.src)) continue;
+    out.push(intro);
+    seen.add(intro.src);
+  }
+  return out;
+}
+
 export function auditHomeSlideshowSources(): HomeSlideshowSourceAudit {
   const { projects } = buildPortfolioGallery();
   const included: HomeSlideshowSourceAudit['included'] = [];
@@ -40,6 +67,11 @@ export function auditHomeSlideshowSources(): HomeSlideshowSourceAudit {
         title: project.title,
         youtubeIds: project.videos.map((v) => v.youtubeId),
       });
+    }
+  }
+  for (const intro of HOME_WORK_INTRO_STILLS) {
+    if (!included.some((row) => row.src === intro.src)) {
+      included.push({ projectId: intro.projectId, title: intro.title, src: intro.src });
     }
   }
   return { included, excluded };
@@ -59,7 +91,7 @@ export function buildHomeStillSlideshowItems(): HomeChaosCollageItem[] {
       alt: visual.alt,
     });
   }
-  return items;
+  return appendIntroStills(items);
 }
 
 function pickVisual(project: GalleryProject): { src: string; alt: string } | null {

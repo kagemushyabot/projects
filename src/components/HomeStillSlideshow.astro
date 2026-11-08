@@ -1,31 +1,49 @@
 ---
 import { buildHomeStillSlideshowItems } from '../utils/homeChaosCollage';
-import { assetUrl } from '../utils/paths';
+import { assetUrl, workExperienceHref } from '../utils/paths';
 
 const items = buildHomeStillSlideshowItems();
+const workHref = workExperienceHref();
 const initial = items[0];
 const initialSrc = initial ? (initial.src.startsWith('http') ? initial.src : assetUrl(initial.src)) : '';
 ---
 
 <div class="home-slideshow" data-home-slideshow>
   <div class="home-slideshow-stage" data-slideshow-stage>
-    {
-      initial && (
-        <img
-          data-slideshow-img
-          src={initialSrc}
-          alt=""
-          decoding="async"
-          width="640"
-          height="400"
-        />
-      )
-    }
+    <div class="home-slideshow-viewport">
+      <div class="home-slideshow-stack">
+        <div class="home-slideshow-art">
+          {
+            initial && (
+              <img
+                data-slideshow-img
+                src={initialSrc}
+                alt=""
+                decoding="async"
+                width="640"
+                height="400"
+              />
+            )
+          }
+        </div>
+      </div>
+    </div>
+    <div class="home-slideshow-title-band" aria-hidden="true"></div>
   </div>
-  <div class="home-slideshow-controls">
-    <button type="button" class="home-slideshow-pause" data-slideshow-pause aria-pressed="false">
-      Pause
-    </button>
+
+  <div class="home-slideshow-ui">
+    <p class="home-slideshow-count" aria-live="polite">
+      {items.length} projects · selected stills
+    </p>
+    <div class="home-slideshow-controls">
+      <button type="button" class="home-slideshow-pause" data-slideshow-pause aria-pressed="false">
+        Pause motion
+      </button>
+    </div>
+    <a class="home-slideshow-all" href={workHref}>
+      View full work experience
+      <span aria-hidden="true"> →</span>
+    </a>
   </div>
 </div>
 
@@ -120,7 +138,7 @@ const initialSrc = initial ? (initial.src.startsWith('http') ? initial.src : ass
     pauseBtn.addEventListener('click', function () {
       paused = !paused;
       pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
-      pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+      pauseBtn.textContent = paused ? 'Resume motion' : 'Pause motion';
       root.classList.toggle('home-slideshow--paused', paused);
       if (paused) stopTimer();
       else startTimer();
