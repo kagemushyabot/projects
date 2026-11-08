@@ -11,7 +11,10 @@
     "preview": "astro preview",
     "build:wip-preview": "node scripts/sync-wip-preview.mjs",
     "build:projects-preview": "PUBLIC_SITE_LAUNCH=true PUBLIC_BASE_PATH=/projects/ astro build",
+    "build:user-site": "PUBLIC_SITE_LAUNCH=true PUBLIC_BASE_PATH=/ astro build",
     "deploy:gh-pages": "npm run build:projects-preview && npx gh-pages -d dist --dotfiles",
+    "deploy:user-site": "npm run build:user-site && npx gh-pages -d dist --dotfiles --repo https://github.com/kagemushyabot/kagemushyabot.github.io.git",
+    "deploy:user-site-staging": "npm run build:user-site && npx gh-pages -d dist --dotfiles --branch gh-pages-root",
     "astro": "astro"
   },
   "dependencies": {
