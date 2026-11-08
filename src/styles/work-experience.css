@@ -214,6 +214,16 @@
 }
 
 @media (min-width: 720px) {
+  .gallery-item--row-half {
+    grid-column: span 6;
+  }
+
+  .gallery-item--row-half.gallery-item--wide {
+    grid-column: span 6;
+  }
+}
+
+@media (min-width: 720px) {
   .gallery-item--solo-row,
   .gallery-item.gallery-item--evil-eye {
     grid-column: 1 / -1;
@@ -577,7 +587,36 @@
   --gallery-hero-h: 14.25rem;
 }
 
-.gallery-item--solo-row .gallery-card-media:not(.gallery-card-media--pair-hero) {
+.gallery-item--feature .gallery-card-media--mission-hero,
+.gallery-item--solo-row .gallery-card-media--mission-hero,
+.gallery-card-media--mission-hero {
+  --gallery-hero-h: 13.4375rem;
+  --gallery-hero-w: 21.5625rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, var(--gallery-hero-w, 21.5625rem));
+  gap: 0.65rem;
+  width: fit-content;
+  max-width: 100%;
+  justify-content: start;
+  min-height: var(--gallery-hero-h);
+}
+
+.gallery-card-media--mission-hero .gallery-still-open {
+  width: var(--gallery-hero-w, 21.5625rem);
+  max-width: 100%;
+  min-height: var(--gallery-hero-h);
+  flex: 0 0 var(--gallery-hero-w, 21.5625rem);
+}
+
+.gallery-card-media--mission-hero .gallery-still-open img {
+  width: 100%;
+  min-height: var(--gallery-hero-h);
+  max-height: var(--gallery-hero-h);
+  object-fit: contain;
+}
+
+.gallery-item--solo-row
+  .gallery-card-media:not(.gallery-card-media--pair-hero):not(.gallery-card-media--mission-hero) {
   grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
   gap: 0.55rem;
 }

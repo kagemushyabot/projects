@@ -2,7 +2,9 @@
 import {
   buildPortfolioGallery,
   EVIL_EYE_PANEL_ID,
+  MISSION_PANEL_ID,
   PAIR_HERO_FEATURE_IDS,
+  GALLERY_ROW_PAIR_IDS,
   SOLO_ROW_PANEL_IDS,
 } from '../utils/portfolioGallery';
 import { assetUrl } from '../utils/paths';
@@ -31,6 +33,8 @@ function thumbSrc(youtubeId: string) {
         const isMixed = visibleImages.length > 0 && project.videos.length > 0;
         const layout = project.evilEyeLayout;
         const isSoloRow = SOLO_ROW_SET.has(project.id);
+        const isRowPair = GALLERY_ROW_PAIR_IDS.has(project.id);
+        const isMissionHero = project.id === MISSION_PANEL_ID;
 
         return (
         <li
@@ -41,6 +45,7 @@ function thumbSrc(youtubeId: string) {
             `gallery-item--${project.layout}`,
             project.id === EVIL_EYE_PANEL_ID && 'gallery-item--evil-eye',
             isSoloRow && 'gallery-item--solo-row',
+            isRowPair && 'gallery-item--row-half',
           ]}
           style={`--reveal-delay: ${(index % 10) * 35}ms`}
         >
@@ -174,6 +179,7 @@ function thumbSrc(youtubeId: string) {
                     isPairHero && 'gallery-card-media--pair-hero',
                     isMixed && 'gallery-card-media--mixed',
                     isSoloRow && 'gallery-card-media--solo-row',
+                    isMissionHero && 'gallery-card-media--mission-hero',
                   ]}
                   data-media-grid
                   data-mixed-panel={isMixed ? '' : undefined}

@@ -56,11 +56,39 @@ export const PAIR_HERO_FEATURE_IDS = new Set([
   WATER_PANEL_ID,
 ]);
 
+export const MISSION_PANEL_ID = 'mission-to-the-deep-exhibit';
+export const INSIGHT_PANEL_ID = 'insight-digital-emeryville';
+
+/** Full-width gallery rows (desktop). */
 export const SOLO_ROW_PANEL_IDS = [
-  'mission-to-the-deep-exhibit',
+  MISSION_PANEL_ID,
   'marvel-mighty-heroes-mobile-game',
   'floathybrid-entertainment-sf',
+  INSIGHT_PANEL_ID,
 ] as const;
+
+/** Left/right pairs on one desktop row (DOM order = left then right). */
+export const GALLERY_ROW_PAIRS: readonly (readonly [string, string])[] = [
+  ['blood-brothers-2-mobile-game', 'transformer-age-of-extinction-mobile-game'],
+  ['prototype-music-game', 'prototype-ar-car-chase-app'],
+  ['character-animation-for-escape-plan-ps-vita', 'ux-previsualization'],
+] as const;
+
+export const GALLERY_ROW_PAIR_IDS = new Set(GALLERY_ROW_PAIRS.flat());
+
+/**
+ * Ordered gallery block starting at Mission; tail after Insight preserved from pre-curate order.
+ * Tuple = pair on one row; string = solo row.
+ */
+export const GALLERY_ROW_SEQUENCE_FROM_MISSION: readonly (string | readonly [string, string])[] = [
+  MISSION_PANEL_ID,
+  'marvel-mighty-heroes-mobile-game',
+  GALLERY_ROW_PAIRS[0],
+  'floathybrid-entertainment-sf',
+  GALLERY_ROW_PAIRS[1],
+  GALLERY_ROW_PAIRS[2],
+  INSIGHT_PANEL_ID,
+];
 
 const MYVR_TITLE_RE = /\bmy\s*vr\s*app\b/i;
 const MARVEL_PANEL_ID = 'marvel-mighty-heroes-mobile-game';
@@ -395,6 +423,10 @@ export interface EvilEyeCurateReport {
 
 export interface GalleryLayoutReport {
   myvrPanelsRemoved: number;
+  /** Gallery panel ids from Mission onward after row curation. */
+  idsFromMission: string[];
+  /** Ids after Insight — must match pre-curate tail order. */
+  tailAfterInsightIds: string[];
 }
 
 function isMyvrAppPanel(p: GalleryProject): boolean {
@@ -409,17 +441,54 @@ function removeMyvrAppPanel(projects: GalleryProject[]): { projects: GalleryProj
   return { projects: filtered, removed: before - filtered.length };
 }
 
-function curateSoloRowSequence(projects: GalleryProject[]): GalleryProject[] {
-  const soloOrder = [...SOLO_ROW_PANEL_IDS];
-  const soloSet = new Set<string>(soloOrder);
-  const picked = soloOrder
-    .map((id) => projects.find((p) => p.id === id))
+function expandRowSequenceIds(seq: readonly (string | readonly [string, string])[]): string[] {
+  const ids: string[] = [];
+  for (const entry of seq) {
+    if (typeof entry === 'string') ids.push(entry);
+    else ids.push(...entry);
+  }
+  return ids;
+}
+
+function curateGalleryRowOrder(projects: GalleryProject[]): {
+  projects: GalleryProject[];
+  idsFromMission: string[];
+  tailAfterInsightIds: string[];
+} {
+  const missionIdx = projects.findIndex((p) => p.id === MISSION_PANEL_ID);
+  if (missionIdx < 0) {
+    return { projects, idsFromMission: [], tailAfterInsightIds: [] };
+  }
+
+  const above = projects.slice(0, missionIdx);
+  const fromMissionOriginal = projects.slice(missionIdx);
+  const insightIdx = fromMissionOriginal.findIndex((p) => p.id === INSIGHT_PANEL_ID);
+  const tailAfterInsightIds =
+    insightIdx >= 0 ? fromMissionOriginal.slice(insightIdx + 1).map((p) => p.id) : [];
+
+  const curatedMiddleIds = expandRowSequenceIds(GALLERY_ROW_SEQUENCE_FROM_MISSION);
+  const targetIds = [...curatedMiddleIds, ...tailAfterInsightIds];
+
+  const fromMissionIds = new Set(fromMissionOriginal.map((p) => p.id));
+  const targetFromMission = targetIds.filter((id) => fromMissionIds.has(id));
+  if (targetFromMission.length !== fromMissionOriginal.length) {
+    return {
+      projects,
+      idsFromMission: fromMissionOriginal.map((p) => p.id),
+      tailAfterInsightIds,
+    };
+  }
+
+  const byId = new Map(projects.map((p) => [p.id, p]));
+  const reorderedBelow = targetIds
+    .map((id) => byId.get(id))
     .filter((p): p is GalleryProject => Boolean(p));
-  if (picked.length !== soloOrder.length) return projects;
-  const rest = projects.filter((p) => !soloSet.has(p.id));
-  const evilIdx = rest.findIndex((p) => p.id === EVIL_EYE_PANEL_ID);
-  const insertAt = evilIdx >= 0 ? evilIdx + 1 : rest.length;
-  return [...rest.slice(0, insertAt), ...picked, ...rest.slice(insertAt)];
+
+  return {
+    projects: [...above, ...reorderedBelow],
+    idsFromMission: reorderedBelow.map((p) => p.id),
+    tailAfterInsightIds,
+  };
 }
 
 function normalizeMarvelYoutube(projects: GalleryProject[]): GalleryProject[] {
@@ -576,17 +645,25 @@ export function buildPortfolioGallery(): {
   projects = withoutMyvr;
 
   const { projects: curated, evilEyeReport } = curateEvilEyePicturesPanel(projects);
-  projects = normalizeMarvelYoutube(curateSoloRowSequence(curated));
-  const layoutReport: GalleryLayoutReport = { myvrPanelsRemoved };
+  const rowOrder = curateGalleryRowOrder(curated);
+  projects = normalizeMarvelYoutube(rowOrder.projects);
+  const layoutReport: GalleryLayoutReport = {
+    myvrPanelsRemoved,
+    idsFromMission: rowOrder.idsFromMission,
+    tailAfterInsightIds: rowOrder.tailAfterInsightIds,
+  };
 
   projects = projects.map((p, i) => {
     const soloRow = (SOLO_ROW_PANEL_IDS as readonly string[]).includes(p.id);
+    const rowPair = GALLERY_ROW_PAIR_IDS.has(p.id);
     let layout =
       p.id === EVIL_EYE_PANEL_ID || PAIR_HERO_FEATURE_IDS.has(p.id) || soloRow
         ? ('feature' as const)
-        : p.layout === 'compact'
-          ? LAYOUT_CYCLE[i % LAYOUT_CYCLE.length]
-          : p.layout;
+        : rowPair
+          ? ('wide' as const)
+          : p.layout === 'compact'
+            ? LAYOUT_CYCLE[i % LAYOUT_CYCLE.length]
+            : p.layout;
     return { ...p, layout };
   });
 
