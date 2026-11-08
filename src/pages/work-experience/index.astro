@@ -3,26 +3,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import WorkExperienceIntro from '../../components/WorkExperienceIntro.astro';
 import PortfolioGallery from '../../components/PortfolioGallery.astro';
 import PortfolioGalleryMotion from '../../components/PortfolioGalleryMotion.astro';
-import { buildPortfolioGallery } from '../../utils/portfolioGallery';
-
-const { projects } = buildPortfolioGallery();
 ---
 
 <BaseLayout title="work experience" current="work-experience">
   <div class="work-page">
     <a class="skip-link" href="#work-main">Skip to portfolio</a>
 
-    <header class="work-page-hero reveal">
-      <p class="work-page-kicker">Jun Nagaoka · Portfolio</p>
-      <h1 class="work-page-title">work experience</h1>
-      <p class="work-page-lead">
-        One gallery of commercial AR/VR, laser-scan heritage, and real-time production — compact
-        media tiles with on-page video playback. All credits and assets from the migrated portfolio.
-      </p>
-      <p class="work-page-count" aria-live="polite">
-        {projects.length} projects
-      </p>
-    </header>
+    <h1 class="sr-only">work experience</h1>
 
     <WorkExperienceIntro />
 
