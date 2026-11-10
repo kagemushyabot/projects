@@ -93,6 +93,17 @@ img {
   user-select: none;
 }
 
+.site-nav a.site-nav-contact {
+  font-weight: 600;
+  text-transform: none;
+  margin-inline-start: 0.15rem;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  padding-block: 0.25rem;
+  padding-inline: 0.2rem;
+}
+
 main {
   flex: 1;
   width: 100%;
