@@ -16,13 +16,25 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .home-stagger {
+    --home-enter-y: 1.1rem;
+    --home-enter-duration: 0.75s;
     opacity: 0;
-    transform: translateY(1.1rem);
-    animation: home-enter 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transform: translateY(var(--home-enter-y));
+    animation: home-enter var(--home-enter-duration) cubic-bezier(0.22, 1, 0.36, 1) forwards;
     animation-delay: calc(0.07s * var(--stagger, 0) + 0.05s);
   }
 
+  .home-type .home-stagger {
+    --home-enter-y: 2rem;
+    --home-enter-duration: 1.05s;
+  }
+
   @keyframes home-enter {
+    from {
+      opacity: 0;
+      transform: translateY(var(--home-enter-y));
+    }
+
     to {
       opacity: 1;
       transform: translateY(0);
