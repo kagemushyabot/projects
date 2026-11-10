@@ -1,0 +1,158 @@
+---
+import { buildHomeStillSlideshowItems } from '../utils/homeChaosCollage';
+import { assetUrl, workExperienceHref } from '../utils/paths';
+
+const items = buildHomeStillSlideshowItems();
+const workHref = workExperienceHref();
+const resolvedItems = items.map((i) => ({
+  ...i,
+  src: i.src.startsWith('http') ? i.src : assetUrl(i.src),
+}));
+---
+
+<div class="home-slideshow" data-home-slideshow>
+  <div class="home-slideshow-stage" data-slideshow-stage>
+    <div class="home-slideshow-viewport">
+      <div class="home-slideshow-stack">
+        <div class="home-slideshow-art">
+          {
+            resolvedItems.length > 0 && (
+              <script is:inline define:vars={{ resolvedItems }}>
+                (function () {
+                  var n = resolvedItems.length;
+                  var idx = Math.floor(Math.random() * n);
+                  var item = resolvedItems[idx];
+                  var root = document.currentScript && document.currentScript.closest('[data-home-slideshow]');
+                  if (root) {
+                    root.dataset.slideshowStartIdx = String(idx);
+                    root.dataset.currentProject = item.projectId;
+                  }
+                  var esc = function (s) {
+                    return String(s)
+                      .replace(/&/g, '&amp;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/</g, '&lt;');
+                  };
+                  document.write(
+                    '<img data-slideshow-img src="' +
+                      esc(item.src) +
+                      '" alt="" decoding="async" width="640" height="400" />',
+                  );
+                })();
+              </script>
+            )
+          }
+        </div>
+      </div>
+    </div>
+    <div class="home-slideshow-title-band" aria-hidden="true"></div>
+  </div>
+
+  <div class="home-slideshow-ui">
+    <div class="home-slideshow-controls">
+      <button type="button" class="home-slideshow-pause" data-slideshow-pause aria-pressed="false">
+        Pause motion
+      </button>
+    </div>
+    <a class="home-slideshow-all" href={workHref}>
+      View full work experience
+      <span aria-hidden="true"> →</span>
+    </a>
+  </div>
+</div>
+
+<script is:inline define:vars={{ slideshowItems: resolvedItems }}>
+  (function () {
+    var root = document.querySelector('[data-home-slideshow]');
+    var stage = document.querySelector('[data-slideshow-stage]');
+    var img = document.querySelector('[data-slideshow-img]');
+    var pauseBtn = document.querySelector('[data-slideshow-pause]');
+    if (!root || !stage || !img || !slideshowItems.length) return;
+
+    var INTERVAL_MS = 1000;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var paused = false;
+    var timer = 0;
+    var tickStarts = [];
+    var idx = parseInt(root.dataset.slideshowStartIdx || '0', 10);
+    if (!Number.isFinite(idx) || idx < 0) idx = 0;
+    idx = idx % slideshowItems.length;
+
+    root.dataset.slideshowIntervalMs = String(INTERVAL_MS);
+    root.dataset.slideshowCount = String(slideshowItems.length);
+
+    function preloadAll(done) {
+      var pending = slideshowItems.length;
+      if (!pending) {
+        done();
+        return;
+      }
+      slideshowItems.forEach(function (item) {
+        var im = new Image();
+        im.decoding = 'async';
+        im.onload = im.onerror = function () {
+          pending -= 1;
+          if (pending <= 0) done();
+        };
+        im.src = item.src;
+      });
+    }
+
+    function recordTick() {
+      var t = performance.now();
+      tickStarts.push(t);
+      if (tickStarts.length > 24) tickStarts.shift();
+      root.dataset.lastTickStart = String(t);
+    }
+
+    function showAtIndex(i) {
+      var item = slideshowItems[i % slideshowItems.length];
+      if (!item) return;
+      recordTick();
+      img.src = item.src;
+      root.dataset.currentProject = item.projectId;
+    }
+
+    function advance() {
+      if (paused || reduced) return;
+      idx = (idx + 1) % slideshowItems.length;
+      showAtIndex(idx);
+    }
+
+    function startTimer() {
+      window.clearInterval(timer);
+      if (reduced || paused) return;
+      timer = window.setInterval(advance, INTERVAL_MS);
+    }
+
+    function stopTimer() {
+      window.clearInterval(timer);
+      timer = 0;
+    }
+
+    if (reduced) {
+      root.classList.add('home-slideshow--reduced');
+      pauseBtn.hidden = true;
+      recordTick();
+      return;
+    }
+
+    pauseBtn.addEventListener('click', function () {
+      paused = !paused;
+      pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+      pauseBtn.textContent = paused ? 'Resume motion' : 'Pause motion';
+      root.classList.toggle('home-slideshow--paused', paused);
+      if (paused) stopTimer();
+      else startTimer();
+    });
+
+    preloadAll(function () {
+      recordTick();
+      startTimer();
+    });
+
+    root.getSlideshowTickStarts = function () {
+      return tickStarts.slice();
+    };
+  })();
+</script>

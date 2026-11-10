@@ -1,0 +1,34 @@
+export const WORK_EXPERIENCE_PATH = '/work-experience/';
+
+export type WorkExperienceSection = 'custom' | 'images' | 'animation';
+
+/** Unified portfolio page (`/work-experience/`). Legacy section args are ignored (no category anchors). */
+export function workExperienceHref(_section?: WorkExperienceSection): string {
+  return withBase(WORK_EXPERIENCE_PATH);
+}
+
+/** Prefix an app-root path with the configured Astro base (e.g. `/projects/`). */
+export function withBase(path: string): string {
+  const base = import.meta.env.BASE_URL;
+  if (base !== '/' && (path === base || path.startsWith(base))) return path;
+  if (!path.startsWith('/')) return `${base}${path}`;
+  if (path === '/') return base;
+  return `${base}${path.slice(1)}`;
+}
+
+/** Normalize migrated asset path to a single base-prefixed URL. */
+export function assetUrl(path: string): string {
+  const normalized = path.replace(/^\/+/, '/');
+  if (normalized.startsWith('/assets/')) return withBase(normalized);
+  return withBase(normalized);
+}
+
+/** Fix root-absolute `src` / `href` in migrated WordPress HTML for project Pages. */
+export function rewriteImportedHtml(html: string): string {
+  const base = import.meta.env.BASE_URL;
+  if (base === '/') return html;
+  return html.replace(
+    /(src|href)=(["'])\/(?!\/)([^"']*)/g,
+    (_match, attr: string, quote: string, path: string) => `${attr}=${quote}${base}${path}`,
+  );
+}

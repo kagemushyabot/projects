@@ -1,0 +1,30 @@
+---
+import { workExperienceHref } from '../utils/paths';
+
+interface Props {
+  /** Legacy label for redirect page title only. */
+  label: string;
+}
+
+const { label } = Astro.props;
+const url = workExperienceHref();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content={`0;url=${url}`} />
+    <link rel="canonical" href={url} />
+    <title>{label} · Jun Nagaoka</title>
+    <script is:inline define:vars={{ url }}>
+      if (typeof location !== 'undefined') location.replace(url);
+    </script>
+  </head>
+  <body>
+    <p>
+      <a href={url}>Continue to work experience</a>
+    </p>
+  </body>
+</html>

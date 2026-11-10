@@ -1,9 +1,5 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import movies from '../../content/movies.html?raw';
+import RedirectToWorkSection from '../../components/RedirectToWorkSection.astro';
 ---
 
-<BaseLayout title="animation" current="animation">
-  <h1 class="page-title">animation</h1>
-  <div class="wp-content" set:html={movies} />
-</BaseLayout>
+<RedirectToWorkSection label="animation" />

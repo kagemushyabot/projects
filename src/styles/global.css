@@ -1,12 +1,17 @@
 :root {
-  --bg: #0a0a0b;
-  --bg-elevated: #121214;
-  --text: #e8e6e3;
-  --text-muted: #8a8884;
-  --border: #2a2a2e;
-  --accent: #d4a574;
+  --bg: #060607;
+  --bg-elevated: #101116;
+  --text: #f2f0ec;
+  --text-secondary: #d0ccc4;
+  --text-muted: #a8a39a;
+  --border: #2f3036;
+  --border-strong: #45474f;
+  --accent: #c9a66b;
+  --accent-dim: #8f7350;
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --font-display: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
+  /* Sticky site header — scroll-padding / anchors clear the nav bar */
+  --site-header-offset: 4.5rem;
 }
 
 *,
@@ -17,6 +22,7 @@
 
 html {
   scroll-behavior: auto;
+  scroll-padding-top: var(--site-header-offset);
 }
 
 body {
@@ -51,8 +57,12 @@ img {
 }
 
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 90;
   border-bottom: 1px solid var(--border);
   padding: 1rem 1.5rem;
+  background-color: var(--bg);
 }
 
 .site-nav {
@@ -100,10 +110,7 @@ main {
   letter-spacing: 0.08em;
 }
 
-/* Home — Concept C */
-.home-hero {
-  padding: 3rem 0 4rem;
-}
+/* Home — Concept C (hero layout in home.css) */
 
 /* Home — WIP (pre-launch) */
 .wip-hero {
@@ -156,7 +163,7 @@ main {
 .home-type .line-nagaoka {
   display: block;
   font-size: clamp(3.5rem, 14vw, 9rem);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .home-role {
@@ -164,53 +171,7 @@ main {
   font-size: 0.875rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.work-index {
-  list-style: none;
-  margin: 3rem 0 0;
-  padding: 0;
-  border-top: 1px solid var(--border);
-}
-
-.work-index li {
-  border-bottom: 1px solid var(--border);
-}
-
-.work-index a {
-  display: grid;
-  grid-template-columns: 3.5rem 1fr auto;
-  align-items: baseline;
-  gap: 1rem;
-  padding: 1.25rem 0;
-  color: var(--text);
-  text-decoration: none;
-  border-left: 3px solid transparent;
-}
-
-.work-index a:hover {
-  border-left-color: var(--accent);
-  text-decoration: none;
-}
-
-.work-index .num {
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  color: var(--accent);
-}
-
-.work-index .label {
-  font-size: 1.25rem;
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
-}
-
-.work-index .hint {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  color: var(--text-secondary);
 }
 
 /* Page titles */
@@ -354,4 +315,98 @@ main {
   font-size: 0.8125rem;
   color: var(--text-muted);
   margin-bottom: 0.5rem;
+}
+
+/* Resume page — readable contrast (screen + print) */
+.resume-page {
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+body.is-resume main {
+  color: var(--text-secondary);
+}
+
+body.is-resume .resume-header .meta,
+body.is-resume .resume-summary,
+body.is-resume .resume-section p,
+body.is-resume .resume-section li,
+body.is-resume .resume-job .dates {
+  color: var(--text-secondary);
+}
+
+body.is-resume .resume-header h1,
+body.is-resume .resume-job h3,
+body.is-resume .resume-section h2 {
+  color: var(--text);
+}
+
+body.is-resume .resume-job h3 strong {
+  color: var(--text);
+}
+
+/* Named projects / brands + full award nomination phrases */
+body.is-resume .resume-accent-name,
+body.is-resume .resume-accent-nomination {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #d4b483;
+}
+
+body.is-resume main a {
+  color: #e4b872;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+body.is-resume main a:hover {
+  color: #f3d9a8;
+}
+
+.resume-summary {
+  margin: 0;
+  line-height: 1.55;
+}
+
+@media print {
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+
+  body.is-resume {
+    background: #fff !important;
+  }
+
+  body.is-resume main,
+  body.is-resume .resume-header h1,
+  body.is-resume .resume-header .meta,
+  body.is-resume .resume-summary,
+  body.is-resume .resume-section p,
+  body.is-resume .resume-section li,
+  body.is-resume .resume-job h3,
+  body.is-resume .resume-job .dates,
+  body.is-resume .resume-section h2 {
+    color: #141414 !important;
+  }
+
+  body.is-resume .resume-section h2 {
+    color: #2a2a2a !important;
+  }
+
+  body.is-resume main a {
+    color: #0b4f8a !important;
+  }
+
+  body.is-resume .resume-accent-name,
+  body.is-resume .resume-accent-nomination {
+    color: #6b4528 !important;
+  }
+
+  .site-header,
+  .site-footer,
+  .resume-download {
+    display: none !important;
+  }
 }

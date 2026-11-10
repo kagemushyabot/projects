@@ -1,9 +1,10 @@
 ---
 import { siteConfig } from '../config/site';
+import { withBase, workExperienceHref } from '../utils/paths';
 
 interface Props {
   title: string;
-  current?: 'home' | 'custom' | 'images' | 'animation' | 'resume';
+  current?: 'home' | 'work-experience' | 'resume';
 }
 
 const { title, current } = Astro.props;
@@ -11,11 +12,9 @@ const fullTitle = current === 'home' ? 'Jun Nagaoka' : `${title} · Jun Nagaoka`
 
 const nav = siteConfig.launched
   ? [
-      { id: 'home' as const, href: '/', label: 'Home' },
-      { id: 'custom' as const, href: '/custom/', label: 'custom' },
-      { id: 'images' as const, href: '/images/', label: 'images' },
-      { id: 'animation' as const, href: '/animation/', label: 'animation' },
-      { id: 'resume' as const, href: '/resume/', label: 'resume' },
+      { id: 'home' as const, href: withBase('/'), label: 'Home' },
+      { id: 'work-experience' as const, href: workExperienceHref(), label: 'work experience' },
+      { id: 'resume' as const, href: withBase('/resume/'), label: 'resume' },
     ]
   : [];
 ---
@@ -27,7 +26,7 @@ const nav = siteConfig.launched
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Jun Nagaoka — Lead / Senior 3D Artist, AR/VR and real-time production." />
     {!siteConfig.launched && <meta name="robots" content="noindex, nofollow" />}
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -36,7 +35,11 @@ const nav = siteConfig.launched
     />
     <title>{fullTitle}</title>
   </head>
-  <body>
+  <body
+    class:list={[
+      { 'is-home': current === 'home', 'is-work': current === 'work-experience', 'is-resume': current === 'resume' },
+    ]}
+  >
     <div class="site-shell">
       {
         siteConfig.launched && (

@@ -1,0 +1,269 @@
+---
+import {
+  buildPortfolioGallery,
+  buildGalleryGridPlacements,
+  EVIL_EYE_PANEL_ID,
+  MISSION_PANEL_ID,
+  PREPRODUCTION_PANEL_ID,
+  PAIR_HERO_FEATURE_IDS,
+  GALLERY_ROW_PAIR_IDS,
+  SOLO_ROW_PANEL_IDS,
+} from '../utils/portfolioGallery';
+import { assetUrl } from '../utils/paths';
+import PortfolioVideoModal from './PortfolioVideoModal.astro';
+import PortfolioImageModal from './PortfolioImageModal.astro';
+import StillZoomBadge from './StillZoomBadge.astro';
+
+const { projects } = buildPortfolioGallery();
+const gridPlacements = buildGalleryGridPlacements(projects);
+const SOLO_ROW_SET = new Set<string>(SOLO_ROW_PANEL_IDS);
+
+function thumbSrc(youtubeId: string) {
+  return `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
+}
+---
+
+<div class="portfolio-gallery" id="work-main">
+  <ul class="gallery-grid" role="list">
+    {
+      gridPlacements.map(({ project, gridColumn, index }) => {
+        const maxImages = project.layout === 'feature' ? 14 : project.layout === 'wide' ? 10 : 8;
+        const visibleImages = project.images.slice(0, maxImages);
+        const extraImages = project.images.length - visibleImages.length;
+        const isPairHero =
+          PAIR_HERO_FEATURE_IDS.has(project.id) ||
+          (visibleImages.length === 1 && project.videos.length === 1 && project.videos.length > 0);
+        const isMixed = visibleImages.length > 0 && project.videos.length > 0;
+        const layout = project.evilEyeLayout;
+        const isSoloRow = SOLO_ROW_SET.has(project.id);
+        const isRowPair = GALLERY_ROW_PAIR_IDS.has(project.id);
+        const isMissionHero = project.id === MISSION_PANEL_ID;
+        const isPreproductionGrid = project.id === PREPRODUCTION_PANEL_ID;
+
+        return (
+        <li
+          id={project.id}
+          class:list={[
+            'gallery-item',
+            'reveal',
+            `gallery-item--${project.layout}`,
+            project.id === EVIL_EYE_PANEL_ID && 'gallery-item--evil-eye',
+            isSoloRow && 'gallery-item--solo-row',
+            isRowPair && 'gallery-item--row-half',
+          ]}
+          style={`--gallery-grid-column: ${gridColumn}; --reveal-delay: ${(index % 10) * 35}ms`}
+          data-grid-column={gridColumn}
+        >
+          <article class="gallery-card">
+            <header class="gallery-card-head">
+              <h2 class="gallery-card-title">{project.title}</h2>
+              {project.credit && <p class="gallery-card-credit">{project.credit}</p>}
+            </header>
+
+            {layout ? (
+              <div class="gallery-card-media gallery-card-media--evil-eye" data-media-grid data-mixed-panel>
+                <div class="gallery-evil-eye-spotlight-band">
+                  <button
+                    type="button"
+                    class="gallery-still-open gallery-still-open--hero gallery-still-open--spotlight gallery-image gallery-image--still gallery-image--hero-frame"
+                    data-image-open
+                    data-image-src={assetUrl(layout.spotlight.src)}
+                    data-image-title="Google Spotlight Stories"
+                    data-image-alt={layout.spotlight.alt}
+                    aria-label={`View larger image: ${layout.spotlight.alt}`}
+                  >
+                    <img
+                      src={assetUrl(layout.spotlight.src)}
+                      alt={layout.spotlight.alt}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <StillZoomBadge />
+                  </button>
+                </div>
+
+                <div class="gallery-evil-eye-pair gallery-evil-eye-pair--pearl" data-media-pair>
+                  <div class="gallery-evil-eye-pair-still">
+                    <button
+                      type="button"
+                      class="gallery-still-open gallery-still-open--hero gallery-image gallery-image--still gallery-image--hero-frame"
+                      data-image-open
+                      data-image-src={assetUrl(layout.pearl.still.src)}
+                      data-image-title="Pearl still"
+                      data-image-alt={layout.pearl.still.alt}
+                      aria-label={`View larger image: ${layout.pearl.still.alt}`}
+                    >
+                      <img
+                        src={assetUrl(layout.pearl.still.src)}
+                        alt={layout.pearl.still.alt}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <StillZoomBadge />
+                    </button>
+                    <p class="gallery-evil-eye-caption">{layout.pearl.still.captionText}</p>
+                  </div>
+                  <div class="gallery-evil-eye-pair-video">
+                    <button
+                      type="button"
+                      class="gallery-video-thumb"
+                      data-video-open
+                      data-youtube-id={layout.pearl.youtubeId}
+                      data-video-title={layout.pearl.videoAlt}
+                      aria-label={`Play video: ${layout.pearl.videoAlt}`}
+                    >
+                      <img
+                        src={thumbSrc(layout.pearl.youtubeId)}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        width="320"
+                        height="180"
+                      />
+                      <span class="gallery-video-badge" aria-hidden="true">
+                        <svg class="gallery-video-play-icon" viewBox="0 0 24 24" focusable="false">
+                          <path d="M8 5v14l12-7z" fill="currentColor" />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="gallery-evil-eye-pair gallery-evil-eye-pair--on-ice" data-media-pair>
+                  <div class="gallery-evil-eye-pair-still">
+                    <button
+                      type="button"
+                      class="gallery-still-open gallery-still-open--hero gallery-image gallery-image--still gallery-image--hero-frame"
+                      data-image-open
+                      data-image-src={assetUrl(layout.onIce.still.src)}
+                      data-image-title="On Ice still"
+                      data-image-alt={layout.onIce.still.alt}
+                      aria-label={`View larger image: ${layout.onIce.still.alt}`}
+                    >
+                      <img
+                        src={assetUrl(layout.onIce.still.src)}
+                        alt={layout.onIce.still.alt}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <StillZoomBadge />
+                    </button>
+                    <p class="gallery-evil-eye-caption">{layout.onIce.still.captionText}</p>
+                  </div>
+                  <div class="gallery-evil-eye-pair-video">
+                    <button
+                      type="button"
+                      class="gallery-video-thumb"
+                      data-video-open
+                      data-youtube-id={layout.onIce.youtubeId}
+                      data-video-title={layout.onIce.videoAlt}
+                      aria-label={`Play video: ${layout.onIce.videoAlt}`}
+                    >
+                      <img
+                        src={thumbSrc(layout.onIce.youtubeId)}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        width="320"
+                        height="180"
+                      />
+                      <span class="gallery-video-badge" aria-hidden="true">
+                        <svg class="gallery-video-play-icon" viewBox="0 0 24 24" focusable="false">
+                          <path d="M8 5v14l12-7z" fill="currentColor" />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              (project.videos.length > 0 || project.images.length > 0) && (
+                <div
+                  class:list={[
+                    'gallery-card-media',
+                    isPairHero && 'gallery-card-media--pair-hero',
+                    isMixed && 'gallery-card-media--mixed',
+                    isSoloRow && 'gallery-card-media--solo-row',
+                    isMissionHero && 'gallery-card-media--mission-hero',
+                    isPreproductionGrid && 'gallery-card-media--preproduction-grid',
+                  ]}
+                  data-media-grid
+                  data-mixed-panel={isMixed ? '' : undefined}
+                >
+                  {
+                    visibleImages.map((img) => (
+                      <button
+                        type="button"
+                        class="gallery-still-open gallery-still-open--hero gallery-image gallery-image--still gallery-image--hero-frame"
+                        data-image-open
+                        data-image-src={assetUrl(img.src)}
+                        data-image-title={project.title}
+                        data-image-alt={img.alt}
+                        aria-label={`View larger image: ${img.alt || project.title}`}
+                      >
+                        <img
+                          src={assetUrl(img.src)}
+                          alt={img.alt}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <StillZoomBadge />
+                      </button>
+                    ))
+                  }
+                  {
+                    project.videos.map((video) => (
+                      <button
+                        type="button"
+                        class="gallery-video-thumb"
+                        data-video-open
+                        data-youtube-id={video.youtubeId}
+                        data-video-title={project.title}
+                        aria-label={`Play video: ${project.title}`}
+                      >
+                        <img
+                          src={thumbSrc(video.youtubeId)}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          width="320"
+                          height="180"
+                        />
+                        <span class="gallery-video-badge" aria-hidden="true">
+                          <svg class="gallery-video-play-icon" viewBox="0 0 24 24" focusable="false">
+                            <path d="M8 5v14l12-7z" fill="currentColor" />
+                          </svg>
+                        </span>
+                      </button>
+                    ))
+                  }
+                  {
+                    extraImages > 0 && (
+                      <p class="gallery-more-media" aria-label={`${extraImages} more images in this project`}>
+                        +{extraImages}
+                      </p>
+                    )
+                  }
+                </div>
+              )
+            )}
+
+            {
+              project.notes.length > 0 && (
+                <ul class="gallery-card-notes">
+                  {project.notes.map((note) => (
+                    <li>{note}</li>
+                  ))}
+                </ul>
+              )
+            }
+          </article>
+        </li>
+        );
+      })
+    }
+  </ul>
+</div>
+
+<PortfolioVideoModal />
+<PortfolioImageModal />

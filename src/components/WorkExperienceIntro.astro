@@ -1,0 +1,76 @@
+---
+import { assetUrl } from '../utils/paths';
+
+const tacticImage = assetUrl('/assets/work-intro/tactic-studio-featured.png');
+const splatticImage = assetUrl('/assets/work-intro/splattic-featured.png');
+const tacticUrl = 'https://tactic.studio/';
+const splatticUrl = 'https://www.splattic.com/';
+---
+
+<section class="work-intro" aria-labelledby="work-intro-heading">
+  <h2 id="work-intro-heading" class="sr-only">Studio highlights</h2>
+
+  <article class="work-intro-block work-intro-block--tactic reveal">
+    <a
+      class="work-intro-visual work-intro-visual--featured work-intro-visual--external"
+      href={tacticUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Open Tactic Studio website (new tab)"
+    >
+      <img
+        src={tacticImage}
+        alt="Tactic Studio — AR and VR project showcase"
+        width="2117"
+        height="1298"
+        loading="eager"
+        decoding="async"
+      />
+    </a>
+    <div class="work-intro-copy">
+      <p class="work-intro-label">Studio</p>
+      <h3 class="work-intro-title">
+        <a href={tacticUrl} target="_blank" rel="noopener noreferrer">Tactic Studio</a>
+      </h3>
+      <p class="work-intro-text">
+        At Tactic Studio, I contributed to nearly all of the studio&apos;s projects — branded AR and VR
+        campaigns alongside the in-house team.
+      </p>
+    </div>
+  </article>
+
+  <article class="work-intro-block work-intro-block--splattic reveal" style="--reveal-delay: 80ms">
+    <a
+      class="work-intro-visual work-intro-visual--featured work-intro-visual--external"
+      href={splatticUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Open Splattic website (new tab)"
+    >
+      <img
+        src={splatticImage}
+        alt="Splattic — AR/VR/XR workflow web app"
+        width="2106"
+        height="1301"
+        loading="eager"
+        decoding="async"
+      />
+    </a>
+    <div class="work-intro-copy">
+      <p class="work-intro-label">Current</p>
+      <h3 class="work-intro-title">
+        <a href={splatticUrl} target="_blank" rel="noopener noreferrer">Splattic</a>
+      </h3>
+      <p class="work-intro-text">
+        I am developing Splattic, an AR/VR/XR workflow web app, using AI coding tools as an artist with no
+        programming background. It supports glTF, 3DGS, 4DGS, USD, and FBX; enables quick previews for directors
+        and clients as AR/VR/XR or HTML; and can output JSON and JavaScript for engineering handoff when
+        needed.
+      </p>
+      <a class="work-intro-cta" href={splatticUrl} target="_blank" rel="noopener noreferrer">
+        splattic.com
+        <span aria-hidden="true"> ↗</span>
+      </a>
+    </div>
+  </article>
+</section>

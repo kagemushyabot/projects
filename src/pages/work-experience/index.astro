@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import WorkExperienceIntro from '../../components/WorkExperienceIntro.astro';
+import PortfolioGallery from '../../components/PortfolioGallery.astro';
+import PortfolioGalleryMotion from '../../components/PortfolioGalleryMotion.astro';
+---
+
+<BaseLayout title="work experience" current="work-experience">
+  <div class="work-page">
+    <a class="skip-link" href="#work-main">Skip to portfolio</a>
+
+    <h1 class="sr-only">work experience</h1>
+
+    <WorkExperienceIntro />
+
+    <PortfolioGallery />
+    <PortfolioGalleryMotion />
+  </div>
+</BaseLayout>
+
+<style is:global>
+  @import '../../styles/work-experience.css';
+</style>
